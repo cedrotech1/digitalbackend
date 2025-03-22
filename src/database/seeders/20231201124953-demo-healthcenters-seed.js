@@ -5,7 +5,7 @@ module.exports = {
     return queryInterface.bulkInsert("HealthCenters", [
       {
         name: "Tumba Health Center",
-        sectorId: 27, // Ensure this sector exists in your Sectors table
+        sectorId: 1, // Ensure this sector exists in your Sectors table
         createdAt: new Date(),
         updatedAt: new Date(),
       }
