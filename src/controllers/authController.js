@@ -40,10 +40,10 @@ export const login = async (req, res) => {
       message: "Your account is not active",
     });
   }
-  await sendSMS(
-    user.phone,
-    `hello ${user.firstname}, again login successfully, now you are live !`
-  );
+  // await sendSMS(
+  //   user.phone,
+  //   `hello ${user.firstname}, again login successfully, now you are live !`
+  // );
   return res.status(200).json({
     success: true,
     message: "User logged in successfully",

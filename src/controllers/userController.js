@@ -305,30 +305,9 @@ export const SignUp = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try { 
-    let filteredusers=[];
+ 
     let users = await getUsers();
 
-    if(req.user.role=='village_leader'){
-      let myusers = await getMyUsers(req.user.village_id);
-      return res.status(200).json({
-        success: true,
-        message: "Users retrieved successfully",
-        users:myusers,
-      });
-
-    }
-    if(req.user.role=='admin'){
-
-      let citizens = users.filter(user => user.role !== "citizen" && user.id !== req.user.id );
-      
-      // filter users ruturn users not have role of citizen
-      return res.status(200).json({
-        success: true,
-        message: "Users retrieved successfully",
-        users:citizens,
-      });
-
-    }
 
    
 
@@ -346,28 +325,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-export const getCitizen = async (req, res) => {
-  try { 
-    let filteredusers=[];
-    let users = await getUsers();
-
-
-      let citizens = users.filter(user => user.role === "citizen");
-      
-
-    return res.status(200).json({
-      success: true,
-      message: "Users retrieved successfully",
-      users:citizens,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Something went wrong",
-      error,
-    });
-  }
-};
 
 
 

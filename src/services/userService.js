@@ -1,177 +1,41 @@
 import bcrypt from "bcryptjs";
 import db from "../database/models/index.js";
 const users = db["Users"];
-const { Provinces, Districts, Sectors, Cells, Villages,Categories,Users,Posts,Notifications} = db;
+const { Provinces,HealthCenters, Districts, Sectors, Cells, Villages,Categories,Users,Posts,Notifications} = db;
 
 
 import Sequelize, { where } from "sequelize";
 
-export const getMyUsers = async (id) => {
-  try {
-    const allUsers = await users.findAll({
-      where: {
-        role: 'citizen',
-        village_id: id, // Corrected this line for proper AND condition
-      },
-      attributes: { exclude: ["password"] },
-      include: [
-        {
-          model: Notifications,
-          as: "notifications",
-        },
-        {
-          model: Provinces,
-          as: "province",
-        },
-        {
-          model: Districts,
-          as: "district",
-        },
-        {
-          model: Sectors,
-          as: "sector",
-        },
-        {
-          model: Cells,
-          as: "cell",
-        },
-        {
-          model: Villages,
-          as: "village",
-        },
-      ],
-    });
-
-    return allUsers;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error; // Re-throw the error to be handled by the caller
-  }
-};
-
 
 export const getUsers = async () => {
   try {
-    const allUsers = await users.findAll(
-      {
-      attributes: { exclude: ["password"] },
-      include: [
-         
-        {
-          model: Notifications,
-          as: "notifications",
-        },
-        {
-          model: Provinces,
-          as: "province",
-        },
-        {
-          model: Districts,
-          as: "district",
-        },
-        {
-          model: Sectors,
-          as: "sector",
-        },
-        {
-          model: Cells,
-          as: "cell",
-        },
-        {
-          model: Villages,
-          as: "village",
-        },
-        
-        
-      ],
-    }
-  );
-
-    return allUsers;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error; // Re-throw the error to be handled by the caller
-  }
-};
-
-export const getUsers1 = async () => {
-  try {
     const allUsers = await users.findAll({
-      where:{role:'user'},
       attributes: { exclude: ["password"] },
       include: [
         {
-          model: ProfileDetails,
-          as: "ProfileDetails",  
+          model: HealthCenters,
+          as: "HealthCenters", // Corrected alias (singular)
           include: [
             {
-              model: ProfileCategories,
-              as: "category", 
+              model: Sectors,
+              as: "sector", // Corrected alias (singular)
+              
             },
           ],
-
+          
         },
-        {
-          model: Missions,
-          as: "missions",
-        },
-        {
-          model: Appointments,
-          as: "appointments",
-        },
-      
-        {
-          model: Notifications,
-          as: "notifications",
-        },
-        {
-          model: Department,
-          as: "department",
-          include: [
-            {
-              model: users,
-              as: "reader",
-              attributes: { exclude: ["password"] }, // Exclude password
-            },
-          ],
-        },
-        
       ],
     });
 
     return allUsers;
   } catch (error) {
     console.error("Error fetching users:", error);
-    throw error; // Re-throw the error to be handled by the caller
-  }
-};
-
-
-
-
-export const updateUserWithRestaurant = async (userId, restaurantId) => {
-  try {
-    const userToUpdate = await users.findOne({
-      where: { id: userId },
-      attributes: { exclude: ["password"] },
-    });
-
-    if (userToUpdate) {
-      await userToUpdate.update({ restaurents: restaurantId });
-      const updatedUser = await users.findByPk(userId, {
-        attributes: { exclude: ["password"] },
-      });
-
-      return updatedUser;
-    }
-    
-
-    return null;
-  } catch (error) {
-    console.error("Error updating user with restaurant:", error);
     throw error;
   }
 };
+
+
+
 export const createUser = async (user) => {
   // hashing password
   const salt = await bcrypt.genSalt(10);
@@ -191,36 +55,21 @@ export const createUserCustomer = async (user) => {
 };
 
 export const getUser = async (id) => {
-  const user = await users.findByPk(id, {
+  const user = await users.findByPk(id,  {
     attributes: { exclude: ["password"] },
     include: [
-         
       {
-        model: Notifications,
-        as: "notifications",
+        model: HealthCenters,
+        as: "HealthCenters", // Corrected alias (singular)
+        include: [
+          {
+            model: Sectors,
+            as: "sector", // Corrected alias (singular)
+            
+          },
+        ],
+        
       },
-      {
-        model: Provinces,
-        as: "province",
-      },
-      {
-        model: Districts,
-        as: "district",
-      },
-      {
-        model: Sectors,
-        as: "sector",
-      },
-      {
-        model: Cells,
-        as: "cell",
-      },
-      {
-        model: Villages,
-        as: "village",
-      },
-      
-      
     ],
   });
   return user;
@@ -287,32 +136,7 @@ export const getallUsers = async () => {
   const allUsers = await users.findAll({
     // where: { restaurents },
     attributes: { exclude: ["password"] },
-    include: [
-      {
-        model: Notifications,
-        as: "notifications",
-      },
-      {
-        model: Provinces,
-        as: "province",
-      },
-      {
-        model: Districts,
-        as: "district",
-      },
-      {
-        model: Sectors,
-        as: "sector",
-      },
-      {
-        model: Cells,
-        as: "cell",
-      },
-      {
-        model: Villages,
-        as: "village",
-      },
-    ],
+   
   });
   return allUsers;
 };
