@@ -31,6 +31,7 @@ const createBornWithBabies = async (req, res) => {
 
     // Find users who should be notified: Admins and Data Managers
     const usersToNotify = await Users.findAll({
+
       where: {
         role: {
           [db.Sequelize.Op.in]: ["admin", "data_manager"]
@@ -191,6 +192,14 @@ const getAllBorns = async (req, res) => {
 const getBornById = async (req, res) => {
   try {
     const { id } = req.params;
+     let whereCondition = {};
+
+    if (req.user.role == "head_of_community_workers_at_helth_center") {
+      if (!req.user.healthCenterId) {
+        return res.status(400).json({ message: "Missing healthCenterId for user" });
+      }
+      whereCondition = { healthCenterId: req.user.healthCenterId };
+    }
     const born = await Borns.findByPk(id, {
       where: whereCondition,
       include: [
