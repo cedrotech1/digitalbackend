@@ -8,11 +8,11 @@ import {
 } from "../controllers/appointmentController.js";
 
 const router = express.Router();
-
-router.post("/", createAppointment);
-router.get("/", getAllAppointments);
-router.get("/:id", getAppointmentById);
-router.put("/:id", updateAppointment);
-router.delete("/:id", deleteAppointment);
+import { protect } from '../middlewares/protect.js';
+router.post("/", protect,createAppointment);
+router.get("/", protect,getAllAppointments);
+router.get("/:id", protect,getAppointmentById);
+router.put("/:id", protect,updateAppointment);
+router.delete("/:id",protect, deleteAppointment);
 
 export default router;

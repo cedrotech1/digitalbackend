@@ -47,7 +47,7 @@ export const updateFeedback = async (req, res) => {
 
     if (!updated) return res.status(404).json({ error: "Feedback not found" });
 
-    const updatedFeedback = await AppointmentFeedback.findByPk(id);
+    const updatedFeedback = await AppointmentFeedbacks.findByPk(id);
     res.status(200).json({ message: "Feedback updated", data: updatedFeedback });
   } catch (error) {
     res.status(500).json({ error: error.message });

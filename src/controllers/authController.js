@@ -72,6 +72,7 @@ export const forgotPassword = async (req, res) => {
       message: "Please provide email",
     });
   }
+
   const user = await getUserByEmail(req.body.email);
   if (!user) {
     return res.status(400).json({
@@ -81,7 +82,7 @@ export const forgotPassword = async (req, res) => {
   }
   return res.status(200).json({
     success: true,
-    message: "Password reset link sent to your email",
+    message: "Password reset link sent to your email!",
   });
 };
 
