@@ -155,7 +155,8 @@ export const addUser = async (req, res) => {
     }
 
     // generate password
-    const password = `D${Math.random().toString(36).slice(-8)}`;
+    // const password = `D${Math.random().toString(36).slice(-8)}`;
+    const password = `1234`;
     req.body.password = password;
     req.body.status = "active";
     // req.body.role = "citizen";
