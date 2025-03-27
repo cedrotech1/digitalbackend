@@ -89,93 +89,67 @@ export const changePassword = async (req, res) => {
   }
 };
 
+
+const VALID_ROLES = ["admin", "head_of_community_workers_at_health_center","data_manager","pediatrition"]; // Allowed roles
+const PHONE_REGEX = /^\+?[1-9]\d{7,14}$/; // Validates international phone numbers
+
 export const addUser = async (req, res) => {
-  let role = req.user.role;
-
-  if (!req.body.role || req.body.role === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide role",
-    });
-  }
-
-  if (!req.body.firstname || req.body.firstname === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide firstname",
-    });
-  }
-  if (!req.body.lastname || req.body.lastname === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide lastname",
-    });
-  }
-  if (!req.body.email || req.body.email === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide email",
-    });
-  }
-  if (!req.body.phone || req.body.phone === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide phone",
-    });
-  }
-  console.log(req.body);
-  if(req.body.role=='head_of_community_workers_at_helth_center')
-  {
-    if(!req.body.healthCenterId || req.body.healthCenterId === "")
-    {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide healthCenter",
-      });
-    }
-    
-  }
-
-
   try {
-    const userExist = await getUserByEmail(req.body.email);
-    if (userExist) {
-      return res.status(400).json({
-        success: false,
-        message: "email already exist",
-      });
+    const { role, firstname, lastname, email, phone, healthCenterId } = req.body;
+
+    // Validate required fields
+    if (!role) return res.status(400).json({ success: false, message: "Please provide a role" });
+    if (!VALID_ROLES.includes(role)) return res.status(400).json({ success: false, message: "Invalid role provided" });
+
+    if (!firstname) return res.status(400).json({ success: false, message: "Please provide a firstname" });
+    if (!lastname) return res.status(400).json({ success: false, message: "Please provide a lastname" });
+    if (!email) return res.status(400).json({ success: false, message: "Please provide an email" });
+    if (!phone) return res.status(400).json({ success: false, message: "Please provide a phone number" });
+
+    // Validate phone number format
+    if (!PHONE_REGEX.test(phone)) return res.status(400).json({ success: false, message: "Invalid phone number format" });
+
+    
+    // Special role requirement check
+    if (role === "head_of_community_workers_at_health_center" && !healthCenterId) {
+      return res.status(400).json({ success: false, message: "Please provide healthCenterId for this role" });
     }
 
-    const phoneExist = await getUserByPhone(req.body.phone);
-    if (phoneExist) {
-      return res.status(400).json({
-        success: false,
-        message: "phone number has been used",
-      });
-    }
+    // Check if email or phone already exists
+    const userExist = await getUserByEmail(email);
+    if (userExist) return res.status(400).json({ success: false, message: "Email already exists" });
 
-    // generate password
-    // const password = `D${Math.random().toString(36).slice(-8)}`;
-    const password = `1234`;
+    const phoneExist = await getUserByPhone(phone);
+    if (phoneExist) return res.status(400).json({ success: false, message: "Phone number has been used" });
+
+    // Generate a password (defaulting to '1234' for now)
+    const password = "1234";
     req.body.password = password;
     req.body.status = "active";
-    // req.body.role = "citizen";
 
-
-
+    // Create user
     const newUser = await createUser(req.body);
     newUser.password = password;
     // console.log(req.user.province_id)
     // send email
-    await new Email(newUser).sendAccountAdded();
+    // await new Email(newUser).sendAccountAdded();
 
-    await sendSMS(
-      newUser.phone,
-      `Welcome to the system! Your credentials are:\nEmail: ${newUser.email}\nPassword: ${password}`
-    );
+    // await sendSMS(
+    //   newUser.phone,
+    //   Welcome to the system! Your credentials are:\nEmail: ${newUser.email}\nPassword: ${password}
+    // );
 
     const notification = await createNotification({ userID:newUser.id,title:"Account created for you", message:"your account has been created successfull", type:'account', isRead: false });
     
+
+    // Send notification
+    await createNotification({
+      userID: newUser.id,
+      title: "Account created for you",
+      message: "Your account has been created successfully",
+      type: "account",
+      isRead: false,
+    });
 
     return res.status(201).json({
       success: true,
@@ -185,20 +159,13 @@ export const addUser = async (req, res) => {
         firstname: newUser.firstname,
         lastname: newUser.lastname,
         email: newUser.email,
-        role: newUser.role, 
-        province_id:newUser.province_id,
-        district_id:newUser.district_id,
-        sector_id:newUser.sector_id,
-        cell_id:newUser.cell_id,
-        village_id:newUser.village_id,
+        role: newUser.role,
+      
       },
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Something went wrong",
-      error,
-    });
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong", error: error.message });
   }
 };
 

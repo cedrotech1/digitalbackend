@@ -90,7 +90,6 @@ const options = {
                 phone: "08012345678",
                 role: "data_manager/head_of_community_workers_at_helth_center/pediatrition/admin",
                 gender: "Male",
-                address: "Gatsata",
                 healthCenterId:"1"
               },
             },
@@ -1399,7 +1398,7 @@ const options = {
           sector_id: { type: "integer" },
           cell_id: { type: "integer" },
           village_id: { type: "integer" },
-          
+
         },
       },
       Baby: {
