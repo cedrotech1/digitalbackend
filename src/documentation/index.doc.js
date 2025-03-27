@@ -1394,9 +1394,12 @@ const options = {
           fatherNationalId: { type: "string" },
           fatherName: { type: "string" },
           fatherPhone: { type: "string" },
-          babyCount: { type: "integer" },
           deliveryType: { type: "string" },
           status: { type: "string" },
+          sector_id: { type: "integer" },
+          cell_id: { type: "integer" },
+          village_id: { type: "integer" },
+          
         },
       },
       Baby: {
@@ -1418,6 +1421,7 @@ const options = {
           time: { type: "string", format: "time", description: "Appointment time" },
           purpose: { type: "string", description: "Purpose of the appointment" },
           status: { type: "string", enum: ["Scheduled", "Completed", "Canceled"], description: "Appointment status" },
+       
         },
       },
       AppointmentFeedback: {

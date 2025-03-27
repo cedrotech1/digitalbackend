@@ -3,24 +3,7 @@ import db from "../database/models/index.js";
 const { Borns, Babies, HealthCenters, Appointments, Sectors,AppointmentFeedbacks  } = db;
 const { Op } = require("sequelize");
 
-const createBaby = async (req, res) => {
-  try {
-    const { bornId, name, gender, birthWeight, dischargebirthWeight, medications } = req.body;
 
-    // Ensure the related Born event exists
-    const bornRecord = await Borns.findByPk(bornId);
-    if (!bornRecord) {
-      return res.status(404).json({ message: "Born record not found" });
-    }
-
-    // Create Baby entry
-    const newBaby = await Babies.create({ bornId, name, gender, birthWeight, dischargebirthWeight, medications });
-
-    return res.status(201).json({ message: "Baby record created successfully!", newBaby });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
 
 // const getAllBabies = async (req, res) => {
 //   try {
@@ -179,6 +162,30 @@ const getBabyById = async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+const createBaby = async (req, res) => {
+  try {
+    const { bornId, name, gender, birthWeight, dischargebirthWeight, medications } = req.body;
+
+    // Ensure the related Born event exists
+    const bornRecord = await Borns.findByPk(bornId);
+    if (!bornRecord) {
+      return res.status(404).json({ message: "Born record not found" });
+    }
+
+    // Create Baby entry
+    const newBaby = await Babies.create({ bornId, name, gender, birthWeight, dischargebirthWeight, medications });
+
+    // Increment baby count in Born record
+    await Borns.update(
+      { babyCount: bornRecord.babyCount + 1 },
+      { where: { id: bornId } }
+    );
+
+    return res.status(201).json({ message: "Baby record created successfully!", newBaby });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
 
 const updateBaby = async (req, res) => {
   try {
@@ -196,15 +203,31 @@ const updateBaby = async (req, res) => {
 const deleteBaby = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Babies.destroy({ where: { id } });
 
-    if (!deleted) return res.status(404).json({ message: "Baby record not found" });
+    // Find baby record before deletion
+    const babyRecord = await Babies.findByPk(id);
+    if (!babyRecord) return res.status(404).json({ message: "Baby record not found" });
+
+    // Find the related Born record
+    const bornRecord = await Borns.findByPk(babyRecord.bornId);
+    if (!bornRecord) return res.status(404).json({ message: "Born record not found" });
+
+    // Delete the baby record
+    await Babies.destroy({ where: { id } });
+
+    // Decrement baby count in Born record (ensuring it doesn't go below 0)
+    const newBabyCount = Math.max(bornRecord.babyCount - 1, 0);
+    await Borns.update(
+      { babyCount: newBabyCount },
+      { where: { id: babyRecord.bornId } }
+    );
 
     return res.status(200).json({ message: "Baby record deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 module.exports = {
   createBaby,

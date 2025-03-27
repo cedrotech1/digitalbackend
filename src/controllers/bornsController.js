@@ -5,23 +5,57 @@ import Email from "../utils/mailer.js"; // Assuming you have an email utility fu
 const { Borns, Babies,Cells ,Villages , Users, Notifications,HealthCenters,Sectors,Appointments,AppointmentFeedbacks  } = db;
 
 const createBornWithBabies = async (req, res) => {
-  let userID=req.user.id;
+  let userID = req.user.id;
   try {
-    const { 
-      dateOfBirth, healthCenterId, motherName, motherPhone, 
-      motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount, 
-      deliveryType, leave, status, sector_id, cell_id, village_id, babies 
+    const {
+      dateOfBirth, healthCenterId, motherName, motherPhone,
+      motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
+      deliveryType, leave, status, sector_id, cell_id, village_id, babies
     } = req.body;
 
-    if (!Array.isArray(babies) || babies.length === 0) {
-      return res.status(400).json({ message: "Babies information is required." });
+    const healthCenter = await HealthCenters.findByPk(healthCenterId);
+    if (!healthCenter) {
+      return res.status(404).json({ message: "Health center not found." });
+    }
+
+    // Validate Required Fields
+    if (!dateOfBirth || !healthCenterId || !motherName || !motherPhone ||
+        !motherNationalId || !fatherName || !fatherPhone || !fatherNationalId ||
+       !deliveryType || !leave || !status || !sector_id || !cell_id || !village_id) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
+    // Validate babyCount
+    if (!Array.isArray(babies) || babies.length === 0 ) {
+      return res.status(400).json({ message: "Babies information is required" });
+    }
+
+    req.body.babyCount=babies.length;
+
+    // Validate Babies Data
+    for (let baby of babies) {
+      if (!baby.name || !baby.gender || !baby.birthWeight || !baby.dischargebirthWeight) {
+        return res.status(400).json({ message: "Each baby must have a name, gender, birth weight, and discharge birth weight." });
+      }
+
+      if (baby.medications && !Array.isArray(baby.medications)) {
+        return res.status(400).json({ message: "Medications should be an array." });
+      }
+
+      if (baby.medications) {
+        for (let med of baby.medications) {
+          if (!med.name || !med.dose || !med.frequency) {
+            return res.status(400).json({ message: "Each medication must have a name, dose, and frequency." });
+          }
+        }
+      }
     }
 
     // Create Born entry
     const newBorn = await Borns.create({
-      dateOfBirth, healthCenterId, motherName, motherPhone, 
-      motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount, 
-      deliveryType, leave, status, sector_id, cell_id, village_id,userID
+      dateOfBirth, healthCenterId, motherName, motherPhone,
+      motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
+      deliveryType, leave, status, sector_id, cell_id, village_id, userID
     });
 
     // Create Babies associated with Born
@@ -29,9 +63,8 @@ const createBornWithBabies = async (req, res) => {
       babies.map(baby => Babies.create({ ...baby, bornId: newBorn.id }))
     );
 
-    // Find users who should be notified: Admins and Data Managers
+    // Find users who should be notified
     const usersToNotify = await Users.findAll({
-
       where: {
         role: {
           [db.Sequelize.Op.in]: ["admin", "data_manager"]
@@ -39,18 +72,16 @@ const createBornWithBabies = async (req, res) => {
       }
     });
 
-   
     const headOfCommunityWorkers = await Users.findAll({
       where: {
         role: "head_of_community_workers_at_helth_center",
-        healthCenterId: healthCenterId // Ensure healthCenterId matches for the specific community worker
+        healthCenterId: healthCenterId
       }
     });
 
-    // Combine both arrays of users
     const allUsersToNotify = [...usersToNotify, ...headOfCommunityWorkers];
 
-    // Prepare notifications with more details
+    // Prepare notifications
     const notifications = allUsersToNotify.map(user => ({
       userID: user.id,
       title: `New Birth Recorded for ${motherName}`,
@@ -64,13 +95,13 @@ const createBornWithBabies = async (req, res) => {
     // Store notifications in the database
     await Notifications.bulkCreate(notifications);
 
-    // Optionally send SMS notifications
-    await Promise.all(
-      allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
-               `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
-               `Visit the system for more information.`))
-    );
+    // Send SMS notifications
+    // await Promise.all(
+    //   allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
+    //            `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
+    //            `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
+    //            `Visit the system for more information.`))
+    // );
 
     // Email notification content
     let claim = {
@@ -80,10 +111,10 @@ const createBornWithBabies = async (req, res) => {
                `Visit the system for more information.`,
     };
 
-    // Send email notifications
-    await Promise.all(
-      allUsersToNotify.map(user => new Email(user, claim).sendNotification())
-    );
+     // Send email notifications
+    //  await Promise.all(
+    //   allUsersToNotify.map(user => new Email(user, claim).sendNotification())
+    // );
 
     return res.status(201).json({
       message: "Born event and babies created successfully! Notifications sent.",
@@ -98,47 +129,6 @@ const createBornWithBabies = async (req, res) => {
 };
 
 
-// export default createBornWithBabies;
-
-
-// export default createBornWithBabies;
-
-// const getAllBorns = async (req, res) => {
-//   try {
-//     const borns = await Borns.findAll({
-//       include: [
-//         { model: HealthCenters, as: "healthCenter", attributes: ["id", "name"] },
-//         { model: Babies, as: "babies", attributes: ["id", "name", "gender", "birthWeight"] },
-//         { model: Appointments, as: "appointments", attributes: ["id", "date", "status"] },
-//         { model: Sectors, as: "sector", attributes: ["id", "name"] },
-//       ],
-//     });
-
-//     return res.status(200).json(borns);
-//   } catch (error) {
-//     return res.status(500).json({ message: "Internal server error", error: error.message });
-//   }
-// };
-
-// const getBornById = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const born = await Borns.findByPk(id, {
-//       include: [
-//         { model: HealthCenters, as: "healthCenter", attributes: ["id", "name"] },
-//         { model: Babies, as: "babies", attributes: ["id", "name", "gender", "birthWeight"] },
-//         { model: Appointments, as: "appointments", attributes: ["id", "date", "status"] },
-//         { model: Sectors, as: "sector", attributes: ["id", "name"] },
-//       ],
-//     });
-
-//     if (!born) return res.status(404).json({ message: "Born record not found" });
-
-//     return res.status(200).json(born);
-//   } catch (error) {
-//     return res.status(500).json({ message: "Internal server error", error: error.message });
-//   }
-// };
 
 const getAllBorns = async (req, res) => {
   try {
@@ -238,8 +228,13 @@ const updateBorn = async (req, res) => {
   try {
     const { id } = req.params;
     const { dateOfBirth, healthCenterId, motherName, motherPhone, 
-      motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount, 
+      motherNationalId, fatherName, fatherPhone, fatherNationalId, 
       deliveryType, leave, status, sector_id, cell_id, village_id } = req.body;
+
+      const healthCenter = await HealthCenters.findByPk(healthCenterId);
+      if (!healthCenter) {
+        return res.status(404).json({ message: "Health center not found." });
+      }
 
     const [updated] = await Borns.update(req.body, { where: { id } });
 
@@ -283,12 +278,12 @@ const updateBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+    // await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
 
     // Send email notifications
     let emailContent = { message: notificationMessage };
 
-    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+    // await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
 
     return res.status(200).json({ message: "Born record updated successfully! Notifications sent." });
 

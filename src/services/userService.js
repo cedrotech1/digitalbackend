@@ -55,7 +55,7 @@ export const createUserCustomer = async (user) => {
 };
 
 export const getUser = async (id) => {
-  const user = await users.findByPk(id,  {
+  const user = await users.findByPk(id,  {  
     attributes: { exclude: ["password"] },
     include: [
       {
