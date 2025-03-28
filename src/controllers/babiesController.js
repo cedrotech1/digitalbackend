@@ -86,7 +86,7 @@ const getAllBabies = async (req, res) => {
         {
           model: Borns,
           as: "birthRecord",
-          attributes: ["id", "motherName", "fatherName", "dateOfBirth"],
+          // attributes: ["id", "motherName", "fatherName", "dateOfBirth"],
           // include: [
           //   {
           //     model: Appointments,
@@ -103,7 +103,32 @@ const getAllBabies = async (req, res) => {
           //   },
           // ],
         },
+
+
+
+  
+          {
+            model: AppointmentFeedbacks,
+            as: "appoitment_feedback",
+          
+            // required: false, // Ensures feedback is retrieved only if available
+            // where: { babyId: id }, // Only include feedback for the requested baby
+            include: [
+           
+              { model: Appointments, as: "appointment" },
+            ],
+          },
+     
+
+
+
+
+
+
+
+        
       ],
+      
     });
 
     // Loop through babies to associate the correct babyId with appointment feedback

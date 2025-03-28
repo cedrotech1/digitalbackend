@@ -198,7 +198,22 @@ const getBornById = async (req, res) => {
         { model: Cells, as: "cell" },
         { model: Villages, as: "village" },
         { model: Users, as: "recordedBy" },
-        { model: Babies, as: "babies", attributes: ["id", "name", "gender", "birthWeight"] },
+        { model: Babies, as: "babies",
+          
+          include: [
+            {
+              model: AppointmentFeedbacks,
+              as: "appoitment_feedback",
+              attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
+              // required: false, // Ensures feedback is retrieved only if available
+              // where: { babyId: id }, // Only include feedback for the requested baby
+              include: [
+             
+                { model: Appointments, as: "appointment" },
+              ],
+            },
+          ],
+        },
         {
           model: Appointments,
           as: "appointments",
@@ -206,7 +221,6 @@ const getBornById = async (req, res) => {
             {
               model: AppointmentFeedbacks,
               as: "appointmentFeedback",
-              attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
               include: [{ model: Babies, as: "baby" }],
             },
           ],
