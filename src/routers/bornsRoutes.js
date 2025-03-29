@@ -6,6 +6,7 @@ const {
   getBornById,
   updateBorn,
   deleteBorn,
+  generateReport
 } = require("../controllers/bornsController");
 import { protect } from '../middlewares/protect.js';
 // Create Born record with Babies
@@ -13,6 +14,7 @@ router.post("/", protect,createBornWithBabies);
 
 // Get all Born records
 router.get("/",protect, getAllBorns);
+router.get("/report/generated",protect, generateReport);
 
 // Get a specific Born record by ID
 router.get("/:id", protect,getBornById);

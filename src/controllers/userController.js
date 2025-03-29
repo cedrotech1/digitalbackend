@@ -24,6 +24,9 @@ import {
   createNotification,
 } from "../services/NotificationService";
 import imageUploader from "../helpers/imageUplouder.js";
+import db from "../database/models/index.js";
+const { Users, Borns, Babies, Appointments, HealthCenters } = db;
+
 
 export const changePassword = async (req, res) => {
   console.log(req.user.id)
@@ -586,5 +589,69 @@ export const ResetPassword = async (req, res) => {
 
 
 
+
+import { USER_ROLES, APPOINTMENT_STATUSES } from "../constants/constants.js"; // Adjust the import path as necessary
+
+export const getStatistics = async (req, res) => {
+  try {
+    // Count total users
+    const totalUsers = await Users.count();
+
+    // Count users by role
+    const userRoles = await Users.findAll({
+      attributes: ["role", [Users.sequelize.fn("COUNT", Users.sequelize.col("role")), "count"]],
+      group: ["role"],
+    });
+
+    // Initialize all roles with zero
+    const users = Object.values(USER_ROLES).reduce((acc, role) => {
+      acc[role] = 0;
+      return acc;
+    }, {});
+
+    // Update counts from the database query
+    userRoles.forEach((user) => {
+      users[user.role] = parseInt(user.dataValues.count, 10);
+    });
+
+    // Count total records
+    const totalBorns = await Borns.count();
+    const totalBabies = await Babies.count();
+    const totalHealthCenters = await HealthCenters.count();
+
+    // Count appointments by status
+    const appointmentStatuses = await Appointments.findAll({
+      attributes: ["status", [Appointments.sequelize.fn("COUNT", Appointments.sequelize.col("status")), "count"]],
+      group: ["status"],
+    });
+
+    // Initialize all appointment statuses with zero
+    const appointmentsByStatus = Object.values(APPOINTMENT_STATUSES).reduce((acc, status) => {
+      acc[status] = 0;
+      return acc;
+    }, {});
+
+    // Update counts from the database query
+    appointmentStatuses.forEach((appointment) => {
+      appointmentsByStatus[appointment.status] = parseInt(appointment.dataValues.count, 10);
+    });
+
+    // Total appointments
+    const totalAppointments = await Appointments.count();
+
+    res.status(200).json({
+      totalUsers,
+      users,
+      totalBorns,
+      totalBabies,
+      totalHealthCenters,
+      totalAppointments,
+      appointmentsByStatus,
+    });
+  } catch (error) {
+    console.error("Error fetching statistics:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 

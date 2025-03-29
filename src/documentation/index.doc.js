@@ -138,6 +138,31 @@ const options = {
         },
       },
     },
+    "/api/v1/users/statistics": {
+      get: {
+        tags: ["Users"],
+        summary: "Get all statistics",
+        description: "Get all statistics",
+        operationId: "getAllstatistics",
+        responses: {
+          200: {
+            description: "User statistics retrieved successfully",
+          },
+          400: {
+            description: "Bad request",
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          404: {
+            description: "User not found",
+          },
+          500: {
+            description: "Something went wrong",
+          },
+        },
+      },
+    },
 
 
     "/api/v1/users/{id}": {
@@ -1010,6 +1035,54 @@ const options = {
           200: { description: "Born record deleted successfully" },
           404: { description: "Born record not found" },
           500: { description: "Internal server error" },
+        },
+      },
+    },
+
+    "/api/v1/borns/report/generated": {
+      get: {
+        tags: ["Borns"],
+        summary: "Get all report",
+        description: "Get all report",
+        operationId: "report",
+        parameters: [
+          {
+            name: "fromDate",
+            in: "query",
+            description: "Start date for the report (format: YYYY-MM-DD)",
+            required: false,
+            schema: {
+              type: "string",
+              format: "date",
+            },
+          },
+          {
+            name: "toDate",
+            in: "query",
+            description: "End date for the report (format: YYYY-MM-DD)",
+            required: false,
+            schema: {
+              type: "string",
+              format: "date",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "User report retrieved successfully",
+          },
+          400: {
+            description: "Bad request",
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          404: {
+            description: "User not found",
+          },
+          500: {
+            description: "Something went wrong",
+          },
         },
       },
     },

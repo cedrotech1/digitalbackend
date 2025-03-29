@@ -1,6 +1,7 @@
 import db from "../database/models/index.js";
 import sendSMS from "../utils/sms.js"; // Assuming you have an SMS utility function
 import Email from "../utils/mailer.js"; // Assuming you have an email utility function
+import { Op } from "sequelize";
 
 const { Borns, Babies,Cells ,Villages , Users, Notifications,HealthCenters,Sectors,Appointments,AppointmentFeedbacks  } = db;
 
@@ -148,12 +149,12 @@ const getAllBorns = async (req, res) => {
     const borns = await Borns.findAll({
       where: whereCondition,
       include: [
-        { model: HealthCenters, as: "healthCenter", attributes: ["id", "name"] },
+        { model: HealthCenters, as: "healthCenter" },
         { model: Sectors, as: "sector" },
         { model: Cells, as: "cell" },
         { model: Villages, as: "village" },
         { model: Users, as: "recordedBy" },
-        { model: Babies, as: "babies", attributes: ["id", "name", "gender", "birthWeight"] },
+        { model: Babies, as: "babies", },
         {
           model: Appointments,
           as: "appointments",
@@ -161,7 +162,7 @@ const getAllBorns = async (req, res) => {
             {
               model: AppointmentFeedbacks,
               as: "appointmentFeedback",
-              attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
+              // attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
               include: [{ model: Babies, as: "baby" }],
             },
           ],
@@ -175,6 +176,150 @@ const getAllBorns = async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
+const generateReport = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized: User not found" });
+    }
+
+    let whereCondition = {};
+
+    // Restrict data to the user's health center if they are head_of_community_workers_at_health_center
+    if (req.user.role == "head_of_community_workers_at_health_center") {
+      if (!req.user.healthCenterId) {
+        return res.status(400).json({ message: "Missing healthCenterId for user" });
+      }
+      whereCondition.healthCenterId = req.user.healthCenterId; // Restricts to only their center
+    }
+
+    const { fromDate, toDate } = req.query;
+    if (fromDate && toDate) {
+      whereCondition.dateOfBirth = {
+        [Op.gte]: new Date(fromDate),
+        [Op.lte]: new Date(toDate),
+      };
+    } else if (fromDate) {
+      whereCondition.dateOfBirth = { [Op.gte]: new Date(fromDate) };
+    } else if (toDate) {
+      whereCondition.dateOfBirth = { [Op.lte]: new Date(toDate) };
+    }
+
+    // Fetch birth records based on the condition
+    const borns = await Borns.findAll({
+      where: whereCondition, // Ensures correct filtering
+      include: [
+        { model: HealthCenters, as: "healthCenter" },
+        { model: Sectors, as: "sector" },
+        { model: Cells, as: "cell" },
+        { model: Villages, as: "village" },
+        { model: Users, as: "recordedBy" },
+        { model: Babies, as: "babies" },
+        {
+          model: Appointments,
+          as: "appointments",
+          include: [
+            {
+              model: AppointmentFeedbacks,
+              as: "appointmentFeedback",
+              include: [{ model: Babies, as: "baby" }],
+            },
+          ],
+        },
+      ],
+    });
+
+    // Initialize summary
+    const summary = {
+      totalBirths: 0,
+      birthsByDeliveryType: {
+        "C-section": 0,
+        "Normal": 0,
+        "Assisted": 0,
+      },
+      birthsByStatus: {
+        yes: 0,
+        no: 0,
+      },
+    };
+
+    if (req.user.role != "head_of_community_workers_at_health_center") {
+      summary.birthsByHealthCenter = await getAllHealthCenters();
+    } else {
+      // Only fetch the specific health center
+      summary.birthsByHealthCenter = await getmyHealthCenters(req.user.healthCenterId);
+    }
+
+    borns.forEach((born) => {
+      summary.totalBirths++;
+
+      if (req.user.role != "head_of_community_workers_at_health_center") {
+        const healthCenterName = born.healthCenter?.name || "Unknown";
+        if (summary.birthsByHealthCenter[healthCenterName] !== undefined) {
+          summary.birthsByHealthCenter[healthCenterName]++;
+        }
+      }
+
+      const deliveryType = born.deliveryType || "Unknown";
+      if (summary.birthsByDeliveryType[deliveryType] !== undefined) {
+        summary.birthsByDeliveryType[deliveryType]++;
+      }
+
+      const status = born.leave === "yes" ? "yes" : "no";
+      summary.birthsByStatus[status]++;
+    });
+
+    const bornRecords = borns.map((born) => ({
+      dateOfBirth: born.dateOfBirth,
+      bornId: born.id,
+      healthCenter: born.healthCenter?.name || "Unknown",
+      motherName: born.motherName,
+      deliveryType: born.deliveryType,
+      leave: born.leave,
+      babies: born.babies.map((baby) => ({
+        babyName: baby.name,
+        gender: baby.gender,
+        birthWeight: baby.birthWeight,
+        dischargeWeight: baby.dischargeWeight,
+        medications: baby.medications.map((med) => med.name),
+      })),
+      appointments: born.appointments.map((appointment) => ({
+        appointmentDate: appointment.date,
+        feedback: appointment.appointmentFeedback.map((feedback) => ({
+          feedbackText: feedback.feedback,
+          nextAppointmentDate: feedback.nextAppointmentDate,
+          status: feedback.status,
+        })),
+      })),
+    }));
+
+    return res.status(200).json({ bornRecords, summary });
+  } catch (error) {
+    console.error("Error generating report:", error);
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+// Helper function to get all health centers and initialize them with 0 births
+async function getAllHealthCenters() {
+  const healthCenters = await HealthCenters.findAll();
+  const healthCentersMap = {};
+  healthCenters.forEach((hc) => (healthCentersMap[hc.name] = 0));
+  return healthCentersMap;
+}
+
+// Helper function to get only the logged-in user's health center
+async function getmyHealthCenters(id) {
+  const healthCenter = await HealthCenters.findByPk(id);
+  if (!healthCenter) {
+    return {};
+  }
+  return { [healthCenter.name]: 0 };
+}
+
+
+
+
 
 
 
@@ -193,7 +338,7 @@ const getBornById = async (req, res) => {
     const born = await Borns.findByPk(id, {
       where: whereCondition,
       include: [
-        { model: HealthCenters, as: "healthCenter", attributes: ["id", "name"] },
+        { model: HealthCenters, as: "healthCenter"},
         { model: Sectors, as: "sector" },
         { model: Cells, as: "cell" },
         { model: Villages, as: "village" },
@@ -204,7 +349,7 @@ const getBornById = async (req, res) => {
             {
               model: AppointmentFeedbacks,
               as: "appoitment_feedback",
-              attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
+              // attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
               // required: false, // Ensures feedback is retrieved only if available
               // where: { babyId: id }, // Only include feedback for the requested baby
               include: [
@@ -379,4 +524,5 @@ module.exports = {
   getBornById,
   updateBorn,
   deleteBorn,
+  generateReport
 };
