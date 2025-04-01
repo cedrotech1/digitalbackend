@@ -23,7 +23,14 @@ export const getAllAppointments = async (req, res) => {
     try {
         const appointments = await Appointments.findAll({
             include: [
-                { model: Borns, as: "birthRecord" },
+                { model: Borns, as: "birthRecord",
+                    include: [
+                       
+                        
+                        { model: Babies, as: "babies" },
+                       
+                      ],
+                 },
 
                 {
                     model: AppointmentFeedbacks,
