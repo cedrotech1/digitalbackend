@@ -20,11 +20,11 @@ const createBornWithBabies = async (req, res) => {
     }
 
     // Validate Required Fields
-    if (!dateOfBirth || !healthCenterId || !motherName || !motherPhone ||
-        !motherNationalId || !fatherName || !fatherPhone || !fatherNationalId ||
-       !deliveryType || !leave || !status || !sector_id || !cell_id || !village_id) {
-      return res.status(400).json({ message: "Missing required fields." });
-    }
+    // if (!dateOfBirth || !healthCenterId || !motherName || !motherPhone ||
+    //     !motherNationalId || !fatherName || !fatherPhone || !fatherNationalId ||
+    //    !deliveryType || !leave || !status || !sector_id || !cell_id || !village_id) {
+    //   return res.status(400).json({ message: "Missing required fields." });
+    // }
 
     // Validate babyCount
     if (!Array.isArray(babies) || babies.length === 0 ) {
