@@ -11,7 +11,6 @@ import {
   checkEmail,
   checkCode,
   ResetPassword,
-  SignUp,
   getStatistics,
 } from '../controllers/userController.js';
 import { protect } from '../middlewares/protect.js';
@@ -24,7 +23,6 @@ router.get('/', protect, getAllUsers);
 router.get('/statistics', protect, getStatistics);
 router.get('/:id', protect, getOneUser);
 router.post('/addUser', protect, addUser);
-router.post('/signup', SignUp);
 router.put('/update/:id', protect, updateOneUser);
 router.delete('/delete/:id', protect, deleteOneUser);
 router.put('/activate/:id', protect, activateOneUser);

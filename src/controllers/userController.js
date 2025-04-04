@@ -135,12 +135,12 @@ export const addUser = async (req, res) => {
     newUser.password = password;
     // console.log(req.user.province_id)
     // send email
-    // await new Email(newUser).sendAccountAdded();
+    await new Email(newUser).sendAccountAdded();
 
-    // await sendSMS(
-    //   newUser.phone,
-    //   Welcome to the system! Your credentials are:\nEmail: ${newUser.email}\nPassword: ${password}
-    // );
+    await sendSMS(
+      newUser.phone,
+      `Welcome to the system! Your credentials are:\nEmail: ${newUser.email}\nPassword: ${password}`
+    );
 
     const notification = await createNotification({ userID:newUser.id,title:"Account created for you", message:"your account has been created successfull", type:'account', isRead: false });
     
@@ -172,107 +172,7 @@ export const addUser = async (req, res) => {
   }
 };
 
-export const SignUp = async (req, res) => {
- 
-  if (!req.body.role || req.body.role === "" || !req.body.firstname || req.body.firstname === "" || !req.body.lastname || req.body.lastname === "" ||  !req.body.email || req.body.email === "" || !req.body.phone || req.body.phone === ""
-     || !req.body.gender || req.body.gender === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide all information",
-      });
-    }
-  console.log(req.body);
-  const { password, confirmPassword } = req.body;
 
-  // Check if password is provided
-  if (!password || password === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide a password",
-    });
-  }
-
-  // Check if confirmPassword is provided
-  if (!confirmPassword || confirmPassword === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide a confirmation password",
-    });
-  }
-
-  // Compare password and confirmPassword
-  if (password !== confirmPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Passwords do not match",
-    });
-  }
-
-
-
-  try {
-    const userExist = await getUserByEmail(req.body.email);
-    if (userExist) {
-      return res.status(400).json({
-        success: false,
-        message: "email already exist",
-      });
-    }
-
-    const NidExist = await getUserByNid(req.body.nid);
-    if (NidExist) {
-      return res.status(400).json({
-        success: false,
-        message: "National id  already exist",
-      });
-    }
-
-    const phoneExist = await getUserByPhone(req.body.phone);
-    if (phoneExist) {
-      return res.status(400).json({
-        success: false,
-        message: "phone number has been used",
-      });
-    }
-
-    // generate password
-    // const password = `D${Math.random().toString(36).slice(-8)}`;
-    const password = req.body.password;
-
-    // create user with generated password and set status to active
-    req.body.password = password;
-    req.body.status = "active";
-    req.body.role = "citizen";
-
-
-
-    const newUser = await createUser(req.body);
-    newUser.password = password;
-
-    return res.status(201).json({
-      success: true,
-      message: "User created successfully",
-      user: {
-        id: newUser.id,
-        firstname: newUser.firstname,
-        lastname: newUser.lastname,
-        email: newUser.email,
-        role: newUser.role, 
-        province_id:newUser.province_id,
-        district_id:newUser.district_id,
-        sector_id:newUser.sector_id,
-        cell_id:newUser.cell_id,
-        village_id:newUser.village_id,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Something went wrong",
-      error,
-    });
-  }
-};
 
 export const getAllUsers = async (req, res) => {
   try { 

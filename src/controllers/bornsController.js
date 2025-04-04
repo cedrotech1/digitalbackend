@@ -97,12 +97,12 @@ const createBornWithBabies = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    // await Promise.all(
-    //   allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
-    //            `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
-    //            `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
-    //            `Visit the system for more information.`))
-    // );
+    await Promise.all(
+      allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
+               `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
+               `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
+               `Visit the system for more information.`))
+    );
 
     // Email notification content
     let claim = {
