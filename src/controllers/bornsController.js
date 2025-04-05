@@ -113,9 +113,9 @@ const createBornWithBabies = async (req, res) => {
     };
 
      // Send email notifications
-    //  await Promise.all(
-    //   allUsersToNotify.map(user => new Email(user, claim).sendNotification())
-    // );
+     await Promise.all(
+      allUsersToNotify.map(user => new Email(user, claim).sendNotification())
+    );
 
     return res.status(201).json({
       message: "Born event and babies created successfully! Notifications sent.",
@@ -422,7 +422,7 @@ const updateBorn = async (req, res) => {
     // Notification details
     const notificationMessage = 
       `A birth record for ${motherName} has been updated.\n` +
-      `Details:\nBaby Count: ${babyCount}\nDelivery Type: ${deliveryType}\n` +
+      `Details:\n Delivery Type: ${deliveryType}\n` +
       `Mother's Phone: ${motherPhone}\nFather's Name: ${fatherName}\n` +
       `Check the system for more details.`;
 
