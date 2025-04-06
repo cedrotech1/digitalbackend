@@ -68,7 +68,7 @@ const createBornWithBabies = async (req, res) => {
     const usersToNotify = await Users.findAll({
       where: {
         role: {
-          [db.Sequelize.Op.in]: ["admin", "data_manager"]
+          [db.Sequelize.Op.in]: ["data_manager"]
         }
       }
     });
@@ -404,7 +404,7 @@ const updateBorn = async (req, res) => {
     // Find users to notify
     const usersToNotify = await Users.findAll({
       where: {
-        role: { [db.Sequelize.Op.in]: ["admin", "data_manager"] }
+        role: { [db.Sequelize.Op.in]: ["data_manager"] }
       }
     });
 
@@ -437,12 +437,12 @@ const updateBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    // await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
 
     // Send email notifications
     let emailContent = { message: notificationMessage };
 
-    // await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
 
     return res.status(200).json({ message: "Born record updated successfully! Notifications sent." });
 
@@ -469,7 +469,7 @@ const deleteBorn = async (req, res) => {
     // Find users to notify
     const usersToNotify = await Users.findAll({
       where: {
-        role: { [db.Sequelize.Op.in]: ["admin", "data_manager"] }
+        role: { [db.Sequelize.Op.in]: ["data_manager"] }
       }
     });
 

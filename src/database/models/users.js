@@ -24,10 +24,10 @@ module.exports = (sequelize, DataTypes) => {
       image: DataTypes.STRING,
       role: {
         type: DataTypes.ENUM(
-          "admin",
+
           "data_manager",
           "head_of_community_workers_at_helth_center",
-          "pediatrition",
+          "doctor",
         ),
         allowNull: false,
       },

@@ -25,10 +25,10 @@ module.exports = (sequelize, DataTypes) => {
       healthCenterId: DataTypes.INTEGER, // FK to HealthCenters
       motherName: DataTypes.STRING,
       motherPhone: DataTypes.STRING,
-      motherNationalId: DataTypes.STRING,
+      // motherNationalId: DataTypes.STRING,
       fatherName: DataTypes.STRING,
       fatherPhone: DataTypes.STRING,
-      fatherNationalId: DataTypes.STRING,
+      // fatherNationalId: DataTypes.STRING,
       
       babyCount: DataTypes.INTEGER,
       deliveryType: DataTypes.STRING, //normal /c-section

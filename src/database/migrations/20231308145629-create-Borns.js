@@ -12,6 +12,14 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
+      dateofDischarge: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      dateofvisit: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       healthCenterId: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -27,10 +35,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      motherNationalId: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
+     
       fatherName: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -39,10 +44,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      fatherNationalId: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
+     
       babyCount: {
         type: Sequelize.INTEGER,
         allowNull: false,

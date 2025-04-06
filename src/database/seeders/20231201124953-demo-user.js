@@ -8,22 +8,11 @@ module.exports = {
     const hashPassword = async (password) => await bcrypt.hash(password, saltRounds);
 
     const users = [
-      {
-        firstname: "Admin",
-        lastname: "Mado",
-        email: "donboscogatenga2024@gmail.com",
-        phone: "0784366616",
-        role: "admin",
-        status: "active",
-        password: await hashPassword("1234"),
-        gender: "Male",
-        healthCenterId: null,
-    
-      },
+
       {
         firstname: "florance",
         lastname: "florance",
-        email: "cedrojoe@gmail.com",
+        email: "florance@gmail.com",
         phone: "0783043021",
         role: "data_manager",
         status: "active",
@@ -32,45 +21,29 @@ module.exports = {
         healthCenterId: null,
    
       },
-      // {
-      //   firstname: "Espoir",
-      //   lastname: "Espoir",
-      //   email: "cedrickhakuzimana75@gmail.com",
-      //   phone: "0782000000",
-      //   role: "data_manager",
-      //   status: "active",
-      //   password: await hashPassword("1234"),
-      //   gender: "Male",
-      //   healthCenterId: null,
-      //   province_id: 1,
-      //   district_id: 2, // Assign a valid district
-      //   sector_id: null,
-      //   cell_id: null,
-      //   village_id: null,
-      // },
       {
-        firstname: "cedrick",
-        lastname: "hakuzimana",
-        email: "cedrotech1@gmail.com",
-        phone: "+250721686167",
-        role: "head_of_community_workers_at_helth_center",
-        status: "active",
-        password: await hashPassword("1234"),
-        gender: "Female",
-        healthCenterId: 1,
-     
-      },
-      {
-        firstname: "patrick",
-        lastname: "mukiza",
-        email: "pediatrition@gmail.com",
-        phone: "0784000004",
-        role: "pediatrition",
+        firstname: "Espoir",
+        lastname: "Espoir",
+        email: "espoir@gmail.com",
+        phone: "0782000000",
+        role: "data_manager",
         status: "active",
         password: await hashPassword("1234"),
         gender: "Male",
         healthCenterId: null,
+    
+      },
       
+      {
+        firstname: "doctor",
+        lastname: "innocent",
+        email: "doctor@gmail.com",
+        phone: "0784000004",
+        role: "doctor",
+        status: "active",
+        password: await hashPassword("1234"),
+        gender: "Male",
+        healthCenterId: null,
       },
    
     ];

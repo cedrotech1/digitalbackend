@@ -88,7 +88,7 @@ const options = {
                 lastname: "Doe",
                 email: "test@example.com",
                 phone: "08012345678",
-                role: "data_manager/head_of_community_workers_at_helth_center/pediatrition/admin",
+                role: "data_manager/head_of_community_workers_at_helth_center/doctor",
                 gender: "Male",
                 healthCenterId:"1"
               },
@@ -927,6 +927,8 @@ const options = {
                 "babyCount": 2,
                 "deliveryType": "C-section",
                 "leave": "yes",
+                "dateofDischarge": "2025-03-20",
+                "dateofvisit": "2025-03-19",
                 "status": "go home",
                 "sector_id": 27,
                 "cell_id": 5,
@@ -1471,6 +1473,9 @@ const options = {
           sector_id: { type: "integer" },
           cell_id: { type: "integer" },
           village_id: { type: "integer" },
+          leave: { type: "string" },
+          dateofDischarge: { type: "string", format: "date" },
+          dateofvisit: { type: "string", format: "date" },
 
         },
       },
