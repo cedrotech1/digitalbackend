@@ -29,7 +29,8 @@ module.exports = (sequelize, DataTypes) => {
       fatherName: DataTypes.STRING,
       fatherPhone: DataTypes.STRING,
       // fatherNationalId: DataTypes.STRING,
-      
+      dateofDischarge:DataTypes.DATE,
+      dateofvisit:DataTypes.DATE,
       babyCount: DataTypes.INTEGER,
       deliveryType: DataTypes.STRING, //normal /c-section
       leave: DataTypes.STRING, //yes //no
