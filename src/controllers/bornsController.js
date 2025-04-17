@@ -8,23 +8,18 @@ const { Borns, Babies,Cells ,Villages , Users, Notifications,HealthCenters,Secto
 const createBornWithBabies = async (req, res) => {
   let userID = req.user.id;
   try {
-    const {
+    let {
       dateOfBirth, healthCenterId, motherName, motherPhone,
-      motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
+      motherNationalId, fatherName, fatherPhone,delivery_place, fatherNationalId, babyCount,
       deliveryType, leave, status, sector_id, cell_id, village_id, babies
     } = req.body;
-
+    console.log("delivery place: "+delivery_place);
     const healthCenter = await HealthCenters.findByPk(healthCenterId);
     if (!healthCenter) {
       return res.status(404).json({ message: "Health center not found." });
     }
 
-    // Validate Required Fields
-    // if (!dateOfBirth || !healthCenterId || !motherName || !motherPhone ||
-    //     !motherNationalId || !fatherName || !fatherPhone || !fatherNationalId ||
-    //    !deliveryType || !leave || !status || !sector_id || !cell_id || !village_id) {
-    //   return res.status(400).json({ message: "Missing required fields." });
-    // }
+
 
     // Validate babyCount
     if (!Array.isArray(babies) || babies.length === 0 ) {
@@ -32,6 +27,8 @@ const createBornWithBabies = async (req, res) => {
     }
 
     req.body.babyCount=babies.length;
+    status='pending'
+    // let delivery_place=req.body.delivery_place;
 
     // Validate Babies Data
     for (let baby of babies) {
@@ -51,13 +48,16 @@ const createBornWithBabies = async (req, res) => {
         }
       }
     }
+    // console.log(newBorn);
+
 
     // Create Born entry
     const newBorn = await Borns.create({
       dateOfBirth, healthCenterId, motherName, motherPhone,
       motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
-      deliveryType, leave, status, sector_id, cell_id, village_id, userID
+      deliveryType, leave, status, sector_id, cell_id, village_id, userID,delivery_place:delivery_place
     });
+
 
     // Create Babies associated with Born
     const createdBabies = await Promise.all(
@@ -87,7 +87,7 @@ const createBornWithBabies = async (req, res) => {
       userID: user.id,
       title: `New Birth Recorded for ${motherName}`,
       message: `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
+               `Details: \nMother's Phone: ${motherPhone}\n` +
                `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
                `Visit the system for more information.`,
       status: "unread"
@@ -381,6 +381,135 @@ const getBornById = async (req, res) => {
   }
 };
 
+const approveBorn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let userapprove=req.user;
+
+    const born = await Borns.findByPk(id);
+    if (!born) {
+      return res.status(404).json({ message: "Born record not found" });
+    }
+
+    born.status = "approved";
+    born.rejectReason = "";
+    await born.save();
+
+    const usersToNotify = await Users.findAll({
+      where: {
+        role: {
+          [db.Sequelize.Op.in]: ["data_manager"]
+        }
+      }
+    });
+
+    const notifications = usersToNotify.map(user => ({
+      userID: user.id,
+      title: `Born for ${born.motherName} has been approved successfully `,
+      message: `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone}  in the system for ${born.motherName}. ` +
+               `Details: \nMother's Phone: ${born.motherPhone}\n` +
+               `\nDelivery Type: ${born.deliveryType}\n` +
+               `Visit the system for more information.`,
+      status: "unread"
+    }));
+
+    // Store notifications in the database
+    await Notifications.bulkCreate(notifications);
+
+    // Send SMS notifications
+    await Promise.all(
+      usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
+         in the system for ${born.motherName}. ` +
+               `Details: \nMother's Phone: ${born.motherPhone}\n` +
+               `\nDelivery Type: ${born.deliveryType}\n` +
+               `Visit the system for more information.`))
+    );
+
+    // Email notification content
+    let claim = {
+      message: `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
+                in the system for ${born.motherName}. ` +
+               `Details: \nMother's Phone: ${born.motherPhone}\n` +
+               `\nDelivery Type: ${born.deliveryType}\n` +
+               `Visit the system for more information.`,
+    };
+
+     // Send email notifications
+     await Promise.all(
+      usersToNotify.map(user => new Email(user, claim).sendNotification())
+    );
+
+    return res.status(200).json({ message: "Born record approved successfully", born });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+const rejectBorn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let userreject=req.user;
+
+    const born = await Borns.findByPk(id);
+    if (!born) {
+      return res.status(404).json({ message: "Born record not found" });
+    }
+
+    born.status = "rejected"; // Or use status code like 2
+    born.rejectReason=req.body.rejectReason;
+    await born.save();
+
+    
+    const usersToNotify = await Users.findAll({
+      where: {
+        role: {
+          [db.Sequelize.Op.in]: ["data_manager"]
+        }
+      }
+    });
+
+    const notifications = usersToNotify.map(user => ({
+      userID: user.id,
+      title: `Born for ${born.motherName} has been rejected ! `,
+      message: `A Born birth has been rejected by ${userreject.firstname}  ${userreject.lastname} / ${userreject.phone} becouse of ${req.body.rejectReason} in the system for ${born.motherName}. ` +
+               `Details: \nMother's Phone: ${born.motherPhone}\n` +
+               `\nDelivery Type: ${born.deliveryType}\n` +
+               `Visit the system for more information.`,
+      status: "unread"
+    }));
+
+    // Store notifications in the database
+    await Notifications.bulkCreate(notifications);
+
+    // Send SMS notifications
+    await Promise.all(
+      usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been rejected by ${userreject.firstname}  ${userreject.lastname} / ${userreject.phone}  becouse of ${req.body.rejectReason}
+         in the system for ${born.motherName}. ` +
+               `Details: \nMother's Phone: ${born.motherPhone}\n` +
+               `\nDelivery Type: ${born.deliveryType}\n` +
+               `Visit the system for more information.`))
+    );
+
+    // Email notification content
+    let claim = {
+      message: `A Born birth has been rejected by ${userreject.firstname}  ${userreject.lastname} / ${userreject.phone} becouse of ${req.body.rejectReason}
+                in the system for ${born.motherName}. ` +
+               `Details: \nMother's Phone: ${born.motherPhone}\n` +
+               `\nDelivery Type: ${born.deliveryType}\n` +
+               `Visit the system for more information.`,
+    };
+
+     // Send email notifications
+     await Promise.all(
+      usersToNotify.map(user => new Email(user, claim).sendNotification())
+    );
+
+    return res.status(200).json({ message: "Born record rejected successfully", born });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 
 
 const updateBorn = async (req, res) => {
@@ -524,5 +653,7 @@ module.exports = {
   getBornById,
   updateBorn,
   deleteBorn,
-  generateReport
+  generateReport,
+  approveBorn,
+  rejectBorn
 };

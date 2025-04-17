@@ -93,7 +93,7 @@ export const changePassword = async (req, res) => {
 };
 
 
-const VALID_ROLES = ["head_of_community_workers_at_helth_center","data_manager","doctor"]; // Allowed roles
+const VALID_ROLES = ["head_of_community_workers_at_helth_center","data_manager","doctor","nurse"]; // Allowed roles
 const PHONE_REGEX = /^\+?[1-9]\d{7,14}$/; // Validates international phone numbers
 
 export const addUser = async (req, res) => {

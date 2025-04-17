@@ -6,7 +6,9 @@ const {
   getBornById,
   updateBorn,
   deleteBorn,
-  generateReport
+  generateReport,
+  approveBorn,
+  rejectBorn
 } = require("../controllers/bornsController");
 import { protect } from '../middlewares/protect.js';
 // Create Born record with Babies
@@ -21,6 +23,8 @@ router.get("/:id", protect,getBornById);
 
 // Update a Born record
 router.put("/:id", protect,updateBorn);
+router.put("/approve/:id", protect,approveBorn);
+router.put("/reject/:id", protect,rejectBorn);
 
 // Delete a Born record
 router.delete("/:id", protect,deleteBorn);

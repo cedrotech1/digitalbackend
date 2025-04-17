@@ -20,6 +20,14 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true,
       },
+      delivery_place:{
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      rejectReason:{
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       healthCenterId: {
         type: Sequelize.INTEGER,
         allowNull: false,

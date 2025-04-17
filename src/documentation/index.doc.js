@@ -47,7 +47,7 @@ const options = {
                 $ref: "#/components/schemas/User",
               },
               example: {
-                email: "donboscogatenga2024@gmail.com",
+                email: "doctor@gmail.com",
                 password: "1234",
               },
             },
@@ -87,8 +87,8 @@ const options = {
                 firstname: "John",
                 lastname: "Doe",
                 email: "test@example.com",
-                phone: "08012345678",
-                role: "data_manager/head_of_community_workers_at_helth_center/doctor",
+                phone: "+250784366616",
+                role: "data_manager/head_of_community_workers_at_helth_center/doctor/nurse",
                 gender: "Male",
                 healthCenterId:"1"
               },
@@ -919,17 +919,15 @@ const options = {
                 "dateOfBirth": "2025-03-19",
                 "healthCenterId": 1,
                 "motherName": "Jane Doe",
-                "motherPhone": "+250788123456",
-                "motherNationalId": "1199999999999999",
-                "fatherNationalId": "2288888888888888",
+                "motherPhone": "+250788123456",          
                 "fatherName": "John Doe",
                 "fatherPhone": "+250788654321",
                 "babyCount": 2,
                 "deliveryType": "C-section",
+                "delivery_place": "Home",
                 "leave": "yes",
                 "dateofDischarge": "2025-03-20",
                 "dateofvisit": "2025-03-19",
-                "status": "go home",
                 "sector_id": 27,
                 "cell_id": 5,
                 "village_id": 3,
@@ -1040,6 +1038,81 @@ const options = {
         },
       },
     },
+
+      "/api/v1/borns/approve/{id}": {
+        put: {
+          tags: ["Borns"],
+          summary: "Approve a born record",
+          description: "Marks a specific born record as approved by updating its status.",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              description: "ID of the born record",
+              schema: { type: "integer" },
+            },
+          ],
+          responses: {
+            200: {
+              description: "Born record approved successfully",
+            },
+            404: {
+              description: "Born record not found",
+            },
+            500: {
+              description: "Internal server error",
+            },
+          },
+        },
+      },
+    
+      "/api/v1/borns/reject/{id}": {
+        put: {
+          tags: ["Borns"],
+          summary: "Reject a born record",
+          description: "Marks a specific born record as rejected by updating its status.",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              description: "ID of the born record",
+              schema: { type: "integer" },
+            },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    rejectReason: {
+                      type: "string",
+                      example: "Missing required fields",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: "Born record rejected successfully",
+            },
+            404: {
+              description: "Born record not found",
+            },
+            500: {
+              description: "Internal server error",
+            },
+          },
+        },
+      },
+    
+    
+    
 
     "/api/v1/borns/report/generated": {
       get: {
