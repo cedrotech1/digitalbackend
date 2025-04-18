@@ -33,9 +33,9 @@ const createBornWithBabies = async (req, res) => {
 
     // Validate Babies Data
     for (let baby of babies) {
-      if (!baby.name || !baby.gender || !baby.birthWeight || !baby.dischargebirthWeight) {
-        return res.status(400).json({ message: "Each baby must have a name, gender, birth weight, and discharge birth weight." });
-      }
+      // if (!baby.name || !baby.gender || !baby.birthWeight || !baby.dischargebirthWeight) {
+      //   return res.status(400).json({ message: "Each baby must have a name, gender, birth weight, and discharge birth weight." });
+      // }
 
       if (baby.medications && !Array.isArray(baby.medications)) {
         return res.status(400).json({ message: "Medications should be an array." });
@@ -517,7 +517,7 @@ const updateBorn = async (req, res) => {
   try {
     const { id } = req.params;
     const { dateOfBirth, healthCenterId, motherName, motherPhone, 
-      motherNationalId, fatherName, fatherPhone, fatherNationalId,delivery_place,
+      motherNationalId, fatherName, fatherPhone,delivery_place,
       deliveryType, leave, status, sector_id, cell_id, village_id } = req.body;
 
       const healthCenter = await HealthCenters.findByPk(healthCenterId);
