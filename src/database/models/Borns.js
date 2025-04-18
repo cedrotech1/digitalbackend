@@ -35,6 +35,8 @@ module.exports = (sequelize, DataTypes) => {
       leave: DataTypes.STRING, //yes //no
       status: DataTypes.STRING, //go home // still in hospital
       // where they do as next destination
+      dateofDischarge: DataTypes.DATE,
+      dateofvisit:DataTypes.DATE,
       delivery_place: DataTypes.STRING,
       rejectReason:DataTypes.STRING,
       sector_id: { type: DataTypes.INTEGER, allowNull: true },

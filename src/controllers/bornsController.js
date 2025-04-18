@@ -88,7 +88,7 @@ const createBornWithBabies = async (req, res) => {
       title: `New Birth Recorded for ${motherName}`,
       message: `A new birth has been recorded in the system for ${motherName}. ` +
                `Details: \nMother's Phone: ${motherPhone}\n` +
-               `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
+               `\nDelivery Type: ${deliveryType}\n` +
                `Visit the system for more information.`,
       status: "unread"
     }));
@@ -100,7 +100,7 @@ const createBornWithBabies = async (req, res) => {
     await Promise.all(
       allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
                `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
-               `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
+               `\nDelivery Type: ${deliveryType}\n` +
                `Visit the system for more information.`))
     );
 
@@ -108,7 +108,7 @@ const createBornWithBabies = async (req, res) => {
     let claim = {
       message: `A new birth has been recorded in the system for ${motherName}. ` +
                `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
-               `\nDelivery Type: ${deliveryType}\nBaby Count: ${babyCount}\n` +
+               `\nDelivery Type: ${deliveryType}\n` +
                `Visit the system for more information.`,
     };
 
@@ -516,7 +516,7 @@ const updateBorn = async (req, res) => {
   try {
     const { id } = req.params;
     const { dateOfBirth, healthCenterId, motherName, motherPhone, 
-      motherNationalId, fatherName, fatherPhone, fatherNationalId, 
+      motherNationalId, fatherName, fatherPhone, fatherNationalId,delivery_place,
       deliveryType, leave, status, sector_id, cell_id, village_id } = req.body;
 
       const healthCenter = await HealthCenters.findByPk(healthCenterId);
@@ -552,7 +552,7 @@ const updateBorn = async (req, res) => {
     const notificationMessage = 
       `A birth record for ${motherName} has been updated.\n` +
       `Details:\n Delivery Type: ${deliveryType}\n` +
-      `Mother's Phone: ${motherPhone}\nFather's Name: ${fatherName}\n` +
+      `Mother's Phone: ${motherPhone}\n` +
       `Check the system for more details.`;
 
     // Create system notifications

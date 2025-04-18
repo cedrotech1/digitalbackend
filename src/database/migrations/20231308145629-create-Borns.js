@@ -19,7 +19,7 @@ module.exports = {
       dateofvisit: {
         type: Sequelize.DATE,
         allowNull: true,
-      },
+      }, 
       delivery_place:{
         type: Sequelize.STRING,
         allowNull: true,
