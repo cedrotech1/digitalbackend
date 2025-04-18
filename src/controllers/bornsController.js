@@ -525,10 +525,11 @@ const updateBorn = async (req, res) => {
         return res.status(404).json({ message: "Health center not found." });
       }
 
+
     const [updated] = await Borns.update(req.body, { where: { id } });
 
     if (updated === 0) {
-      return res.status(404).json({ message: "Born record not found" });
+      return res.status(404).json({ message: "Borns record not found" });
     }
 
     // Find users to notify
