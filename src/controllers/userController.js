@@ -175,17 +175,14 @@ export const addUser = async (req, res) => {
 
 
 export const getAllUsers = async (req, res) => {
-  try { 
- 
-    let users = await getUsers();
-
-
-   
+  try {
+    const allUsers = await getUsers(); // this fetches all users
+    // const users = allUsers.filter(user => user.id !== req.user.id); // exclude current user
 
     return res.status(200).json({
       success: true,
       message: "Users retrieved successfully",
-      users:users,
+      allUsers,
     });
   } catch (error) {
     console.log(error);
@@ -195,6 +192,7 @@ export const getAllUsers = async (req, res) => {
     });
   }
 };
+
 
 
 
@@ -273,21 +271,24 @@ export const deleteOneUser = async (req, res) => {
         message: "User not found",
       });
     }
-    if (req.user.role === "customer" && req.user.role !== "restaurentadmin") {
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized",
-      });
-    }
+
   
     const user = await deleteUser(req.params.id);
+    if (req.user.id == req.params.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot delete your own account.",
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: "User deleted successfully",
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
+    
       message: "Something went wrong",
       error,
     });
