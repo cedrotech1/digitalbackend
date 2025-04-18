@@ -97,12 +97,12 @@ const createBornWithBabies = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    await Promise.all(
-      allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
-               `\nDelivery Type: ${deliveryType}\n` +
-               `Visit the system for more information.`))
-    );
+    // await Promise.all(
+    //   allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
+    //            `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
+    //            `\nDelivery Type: ${deliveryType}\n` +
+    //            `Visit the system for more information.`))
+    // );
 
     // Email notification content
     let claim = {
@@ -113,9 +113,9 @@ const createBornWithBabies = async (req, res) => {
     };
 
      // Send email notifications
-     await Promise.all(
-      allUsersToNotify.map(user => new Email(user, claim).sendNotification())
-    );
+    //  await Promise.all(
+    //   allUsersToNotify.map(user => new Email(user, claim).sendNotification())
+    // );
 
     return res.status(201).json({
       message: "Born event and babies created successfully! Notifications sent.",
@@ -417,13 +417,13 @@ const approveBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    await Promise.all(
-      usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
-         in the system for ${born.motherName}. ` +
-               `Details: \nMother's Phone: ${born.motherPhone}\n` +
-               `\nDelivery Type: ${born.deliveryType}\n` +
-               `Visit the system for more information.`))
-    );
+    // await Promise.all(
+    //   usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
+    //      in the system for ${born.motherName}. ` +
+    //            `Details: \nMother's Phone: ${born.motherPhone}\n` +
+    //            `\nDelivery Type: ${born.deliveryType}\n` +
+    //            `Visit the system for more information.`))
+    // );
 
     // Email notification content
     let claim = {
@@ -435,9 +435,9 @@ const approveBorn = async (req, res) => {
     };
 
      // Send email notifications
-     await Promise.all(
-      usersToNotify.map(user => new Email(user, claim).sendNotification())
-    );
+    //  await Promise.all(
+    //   usersToNotify.map(user => new Email(user, claim).sendNotification())
+    // );
 
     return res.status(200).json({ message: "Born record approved successfully", born });
   } catch (error) {
@@ -566,12 +566,12 @@ const updateBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+    // await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
 
     // Send email notifications
     let emailContent = { message: notificationMessage };
 
-    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+    // await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
 
     return res.status(200).json({ message: "Born record updated successfully! Notifications sent." });
 
@@ -613,7 +613,7 @@ const deleteBorn = async (req, res) => {
     // Merge users
     const allUsersToNotify = [...usersToNotify, ...headOfCommunityWorkers];
 
-    // Deletion notification message
+ 
     const notificationMessage = 
       `The birth record for ${bornRecord.motherName} has been deleted.\n` +
       `Mother's Phone: ${bornRecord.motherPhone}\nFather's Name: ${bornRecord.fatherName}\n` +
