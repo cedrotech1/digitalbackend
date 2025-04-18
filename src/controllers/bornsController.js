@@ -10,10 +10,11 @@ const createBornWithBabies = async (req, res) => {
   try {
     let {
       dateOfBirth, healthCenterId, motherName, motherPhone,
-      motherNationalId, fatherName, fatherPhone,delivery_place, fatherNationalId, babyCount,
+      motherNationalId, fatherName, fatherPhone,delivery_place, fatherNationalId, babyCount,dateofDischarge,dateofvisit,
       deliveryType, leave, status, sector_id, cell_id, village_id, babies
     } = req.body;
     console.log("delivery place: "+delivery_place);
+ 
     const healthCenter = await HealthCenters.findByPk(healthCenterId);
     if (!healthCenter) {
       return res.status(404).json({ message: "Health center not found." });
@@ -50,12 +51,12 @@ const createBornWithBabies = async (req, res) => {
     }
     // console.log(newBorn);
 
-
+    console.log(req.body)
     // Create Born entry
     const newBorn = await Borns.create({
       dateOfBirth, healthCenterId, motherName, motherPhone,
       motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
-      deliveryType, leave, status, sector_id, cell_id, village_id, userID,delivery_place:delivery_place
+      deliveryType, leave, status, sector_id, cell_id, village_id, userID,delivery_place,dateofDischarge,dateofvisit
     });
 
 
@@ -630,12 +631,12 @@ const deleteBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+    // await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
 
     // Send email notifications
     let emailContent = { message: notificationMessage };
 
-    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+    // await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
     await Borns.destroy({ where: { id } });
    
     return res.status(200).json({ message: "Born record deleted successfully! Notifications sent." });
