@@ -3,7 +3,8 @@ const USER_ROLES = {
     ADMIN: "admin",
     DATA_MANAGER: "data_manager",
     HEAD_OF_COMMUNITY_WORKERS: "head_of_community_workers_at_helth_center",
-    PEDIATRICIAN: "pediatrition",
+    DOCTOR: "doctor",
+    NURSE: "nurse",
   };
   
   // Appointment statuses
