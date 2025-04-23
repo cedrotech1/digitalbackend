@@ -33,9 +33,9 @@ const createBornWithBabies = async (req, res) => {
 
     // Validate Babies Data
     for (let baby of babies) {
-      // if (!baby.name || !baby.gender || !baby.birthWeight || !baby.dischargebirthWeight) {
-      //   return res.status(400).json({ message: "Each baby must have a name, gender, birth weight, and discharge birth weight." });
-      // }
+      if (!baby.name || !baby.gender || !baby.birthWeight || !baby.dischargebirthWeight) {
+        // return res.status(400).json({ message: "Each baby must have a name, gender, birth weight, and discharge birth weight." });
+      }
 
       if (baby.medications && !Array.isArray(baby.medications)) {
         return res.status(400).json({ message: "Medications should be an array." });
@@ -58,6 +58,16 @@ const createBornWithBabies = async (req, res) => {
       motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
       deliveryType, leave, status, sector_id, cell_id, village_id, userID,delivery_place,dateofDischarge,dateofvisit
     });
+
+    // Assuming you have Sector, Cell, and Village models imported
+const sector = await Sectors.findByPk(sector_id);
+const cell = await Cells.findByPk(cell_id);
+const village = await Villages.findByPk(village_id);
+
+const sectorName = sector ? sector.name : "Unknown sector";
+const cellName = cell ? cell.name : "Unknown cell";
+const villageName = village ? village.name : "Unknown village";
+
 
 
     // Create Babies associated with Born
@@ -83,40 +93,43 @@ const createBornWithBabies = async (req, res) => {
 
     const allUsersToNotify = [...usersToNotify, ...headOfCommunityWorkers];
 
-    // Prepare notifications
     const notifications = allUsersToNotify.map(user => ({
       userID: user.id,
       title: `New Birth Recorded for ${motherName}`,
       message: `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}\n` +
+               `Details: \nMother's Phone: ${motherPhone}` +
+               `\nLocation Sector ${sectorName}, Cell ${cellName}, Village ${villageName}` +
                `\nDelivery Type: ${deliveryType}\n` +
                `Visit the system for more information.`,
       status: "unread"
     }));
+    
 
     // Store notifications in the database
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    // await Promise.all(
-    //   allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
-    //            `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
-    //            `\nDelivery Type: ${deliveryType}\n` +
-    //            `Visit the system for more information.`))
-    // );
+    await Promise.all(
+      allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
+               `Details: \nMother's Phone: ${motherPhone}` +
+               `\nLocation Sector ${sectorName}, Cell ${cellName}, Village ${villageName}` +
+               `\nDelivery Type: ${deliveryType}\n` +
+               `Visit the system for more information.`))
+    );
 
     // Email notification content
     let claim = {
       message: `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName} ` +
+               `Details: \nMother's Phone: ${motherPhone}` +
+               `\nLocation Sector ${sectorName}, Cell ${cellName}, Village ${villageName}` +
                `\nDelivery Type: ${deliveryType}\n` +
                `Visit the system for more information.`,
     };
 
      // Send email notifications
-    //  await Promise.all(
-    //   allUsersToNotify.map(user => new Email(user, claim).sendNotification())
-    // );
+     await Promise.all(
+      allUsersToNotify.map(user => new Email(user, claim).sendNotification())
+    );
 
     return res.status(201).json({
       message: "Born event and babies created successfully! Notifications sent.",
@@ -418,13 +431,13 @@ const approveBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    // await Promise.all(
-    //   usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
-    //      in the system for ${born.motherName}. ` +
-    //            `Details: \nMother's Phone: ${born.motherPhone}\n` +
-    //            `\nDelivery Type: ${born.deliveryType}\n` +
-    //            `Visit the system for more information.`))
-    // );
+    await Promise.all(
+      usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
+         in the system for ${born.motherName}. ` +
+               `Details: \nMother's Phone: ${born.motherPhone}\n` +
+               `\nDelivery Type: ${born.deliveryType}\n` +
+               `Visit the system for more information.`))
+    );
 
     // Email notification content
     let claim = {
@@ -436,9 +449,9 @@ const approveBorn = async (req, res) => {
     };
 
      // Send email notifications
-    //  await Promise.all(
-    //   usersToNotify.map(user => new Email(user, claim).sendNotification())
-    // );
+     await Promise.all(
+      usersToNotify.map(user => new Email(user, claim).sendNotification())
+    );
 
     return res.status(200).json({ message: "Born record approved successfully", born });
   } catch (error) {
@@ -568,12 +581,12 @@ const updateBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    // await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
 
     // Send email notifications
     let emailContent = { message: notificationMessage };
 
-    // await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
 
     return res.status(200).json({ message: "Born record updated successfully! Notifications sent." });
 
@@ -632,12 +645,12 @@ const deleteBorn = async (req, res) => {
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
-    // await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
 
     // Send email notifications
     let emailContent = { message: notificationMessage };
 
-    // await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
     await Borns.destroy({ where: { id } });
    
     return res.status(200).json({ message: "Born record deleted successfully! Notifications sent." });
