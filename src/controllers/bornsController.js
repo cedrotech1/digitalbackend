@@ -98,8 +98,9 @@ const villageName = village ? village.name : "Unknown village";
       title: `New Birth Recorded for ${motherName}`,
       message: `A new birth has been recorded in the system for ${motherName}. ` +
                `Details: \nMother's Phone: ${motherPhone}` +
-               `\nLocation Sector ${sectorName}, Cell ${cellName}, Village ${villageName}` +
-               `\nDelivery Type: ${deliveryType}\n` +
+               `Details: \Father's name: ${fatherName}` +
+               ` \Father's Phone: ${fatherPhone}\n` +
+               `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
                `Visit the system for more information.`,
       status: "unread"
     }));
@@ -112,8 +113,9 @@ const villageName = village ? village.name : "Unknown village";
     await Promise.all(
       allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
                `Details: \nMother's Phone: ${motherPhone}` +
-               `\nLocation Sector ${sectorName}, Cell ${cellName}, Village ${villageName}` +
-               `\nDelivery Type: ${deliveryType}\n` +
+               `Details: \Father's name: ${fatherName}` +
+               ` \Father's Phone: ${fatherPhone}\n` +
+               `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
                `Visit the system for more information.`))
     );
 
@@ -121,8 +123,9 @@ const villageName = village ? village.name : "Unknown village";
     let claim = {
       message: `A new birth has been recorded in the system for ${motherName}. ` +
                `Details: \nMother's Phone: ${motherPhone}` +
-               `\nLocation Sector ${sectorName}, Cell ${cellName}, Village ${villageName}` +
-               `\nDelivery Type: ${deliveryType}\n` +
+               `Details: \Father's name: ${fatherName}` +
+               ` \Father's Phone: ${fatherPhone}\n` +
+               `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
                `Visit the system for more information.`,
     };
 
