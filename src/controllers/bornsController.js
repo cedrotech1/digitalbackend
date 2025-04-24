@@ -534,8 +534,8 @@ const updateBorn = async (req, res) => {
   try {
     const { id } = req.params;
     const { dateOfBirth, healthCenterId, motherName, motherPhone, 
-      motherNationalId, fatherName, fatherPhone,delivery_place,
-      deliveryType, leave, status, sector_id, cell_id, village_id,comment } = req.body;
+       fatherName, fatherPhone,delivery_place,
+      deliveryType, leave, status, sector_id, cell_id, village_id,comment,dateofvisit } = req.body;
 
       const healthCenter = await HealthCenters.findByPk(healthCenterId);
       if (!healthCenter) {
@@ -543,7 +543,9 @@ const updateBorn = async (req, res) => {
       }
 
 
-    const [updated] = await Borns.update(req.body, { where: { id } });
+    const [updated] = await Borns.update({ dateOfBirth, healthCenterId, motherName, motherPhone, 
+      fatherName, fatherPhone,delivery_place,
+     deliveryType, leave, status, sector_id, cell_id, village_id,comment,dateofvisit}, { where: { id } });
 
     if (updated === 0) {
       return res.status(404).json({ message: "Borns record not found" });
