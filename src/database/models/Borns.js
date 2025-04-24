@@ -38,6 +38,7 @@ module.exports = (sequelize, DataTypes) => {
       dateofDischarge: DataTypes.DATE,
       dateofvisit:DataTypes.DATE,
       delivery_place: DataTypes.STRING,
+      comment: DataTypes.STRING,
       rejectReason:DataTypes.STRING,
       sector_id: { type: DataTypes.INTEGER, allowNull: true },
       cell_id: { type: DataTypes.INTEGER, allowNull: true },

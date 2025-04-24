@@ -11,7 +11,7 @@ const createBornWithBabies = async (req, res) => {
     let {
       dateOfBirth, healthCenterId, motherName, motherPhone,
       motherNationalId, fatherName, fatherPhone,delivery_place, fatherNationalId, babyCount,dateofDischarge,dateofvisit,
-      deliveryType, leave, status, sector_id, cell_id, village_id, babies
+      deliveryType, leave, status, sector_id, cell_id, village_id,comment, babies
     } = req.body;
     console.log("delivery place: "+delivery_place);
  
@@ -56,17 +56,17 @@ const createBornWithBabies = async (req, res) => {
     const newBorn = await Borns.create({
       dateOfBirth, healthCenterId, motherName, motherPhone,
       motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
-      deliveryType, leave, status, sector_id, cell_id, village_id, userID,delivery_place,dateofDischarge,dateofvisit
+      deliveryType, leave, status, sector_id, cell_id, village_id,comment, userID,delivery_place,dateofDischarge,dateofvisit
     });
 
     // Assuming you have Sector, Cell, and Village models imported
-const sector = await Sectors.findByPk(sector_id);
-const cell = await Cells.findByPk(cell_id);
-const village = await Villages.findByPk(village_id);
+  const sector = await Sectors.findByPk(sector_id);
+  const cell = await Cells.findByPk(cell_id);
+  const village = await Villages.findByPk(village_id);
 
-const sectorName = sector ? sector.name : "Unknown sector";
-const cellName = cell ? cell.name : "Unknown cell";
-const villageName = village ? village.name : "Unknown village";
+  const sectorName = sector ? sector.name : "Unknown sector";
+  const cellName = cell ? cell.name : "Unknown cell";
+  const villageName = village ? village.name : "Unknown village";
 
 
 
@@ -110,6 +110,7 @@ const villageName = village ? village.name : "Unknown village";
     await Notifications.bulkCreate(notifications);
 
     // Send SMS notifications
+
     await Promise.all(
       allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
                `Details: \nMother's Phone: ${motherPhone}` +
@@ -534,7 +535,7 @@ const updateBorn = async (req, res) => {
     const { id } = req.params;
     const { dateOfBirth, healthCenterId, motherName, motherPhone, 
       motherNationalId, fatherName, fatherPhone,delivery_place,
-      deliveryType, leave, status, sector_id, cell_id, village_id } = req.body;
+      deliveryType, leave, status, sector_id, cell_id, village_id,comment } = req.body;
 
       const healthCenter = await HealthCenters.findByPk(healthCenterId);
       if (!healthCenter) {

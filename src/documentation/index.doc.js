@@ -931,6 +931,7 @@ const options = {
                 "sector_id": 27,
                 "cell_id": 5,
                 "village_id": 3,
+                "comment":"comments on visit",
                 "babies": [
                   {
                     "name": "Baby One",
@@ -1542,6 +1543,7 @@ const options = {
           deliveryType: { type: "string" },
           delivery_place:{type: "string"},
           status: { type: "string" },
+          comment: { type: "string" },
           sector_id: { type: "integer" },
           cell_id: { type: "integer" },
           village_id: { type: "integer" },
