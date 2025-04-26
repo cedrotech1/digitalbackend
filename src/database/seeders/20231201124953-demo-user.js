@@ -46,7 +46,10 @@ module.exports = {
       { firstname: "Jean de Dieu", lastname: "Nsengiyumva", email: "nsengajado10@gmail.com", phone: "0788986825", role: "head_of_community_workers_at_helth_center", gender: "Male", healthCenterId: 16 },
       { firstname: "Philothee", lastname: "Murebwayire", email: "murebwayirephilothee07@gmai.com", phone: "0784366616", role: "head_of_community_workers_at_helth_center", gender: "Female", healthCenterId: 17 },
 
-      // NGO UMUBANO IMPORE Staff (no healthCenterId)
+      // { firstname: "Philothee", lastname: "Murebwayire", email: "cedrotech1@gmai.com", phone: "0721686167", role: "head_of_community_workers_at_helth_center", gender: "Female", healthCenterId: 17 },
+      // { firstname: "Espoir", lastname: "Rusimbi", email: "cedrickhakuzimana75@gmail.com", phone: "0784366616", role: "data_manager", gender: "Male", healthCenterId: null },
+      // { firstname: "Florence", lastname: "Mwiza", email: "cedrojoe@gmail.com", phone: "0783043021", role: "data_manager", gender: "Female", healthCenterId: null },
+
       { firstname: "Espoir", lastname: "Rusimbi", email: "rusimbiespoir120@gmail.com", phone: "0788283868", role: "data_manager", gender: "Male", healthCenterId: null },
       { firstname: "Florence", lastname: "Mwiza", email: "florenceinjesus@gmail.com", phone: "0788263827", role: "data_manager", gender: "Female", healthCenterId: null },
 

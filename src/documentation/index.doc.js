@@ -548,6 +548,58 @@ const options = {
         },
       },
     },
+    "/api/v1/borns/notification/setting": {
+      get: {
+        tags: ["Users"],
+        summary: "Update a notification",
+        description: "Update a notification",
+        operationId: "notify",
+
+        responses: {
+          200: {
+            description: "setting deleted successfully",
+          },
+          400: {
+            description: "Bad request",
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          404: {
+            description: " not found",
+          },
+          500: {
+            description: "Something went wrong",
+          },
+        },
+      },
+    },
+    "/api/v1/borns/notification/get": {
+      get: {
+        tags: ["Users"],
+        summary: "Update a notification",
+        description: "Update a notification",
+        operationId: "notify",
+
+        responses: {
+          200: {
+            description: " deleted successfully",
+          },
+          400: {
+            description: "Bad request",
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          404: {
+            description: " not found",
+          },
+          500: {
+            description: "Something went wrong",
+          },
+        },
+      },
+    },
 
     "/api/v1/notification/": {
       get: {

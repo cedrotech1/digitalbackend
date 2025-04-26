@@ -3,11 +3,15 @@ import sendSMS from "../utils/sms.js"; // Assuming you have an SMS utility funct
 import Email from "../utils/mailer.js"; // Assuming you have an email utility function
 import { Op } from "sequelize";
 
-const { Borns, Babies,Cells ,Villages , Users, Notifications,HealthCenters,Sectors,Appointments,AppointmentFeedbacks  } = db;
+const { Borns, Babies,Cells,Settings,Villages , Users, Notifications,HealthCenters,Sectors,Appointments,AppointmentFeedbacks  } = db;
 
 const createBornWithBabies = async (req, res) => {
   let userID = req.user.id;
   try {
+    const notify = await Settings.findByPk(1); 
+
+ 
+    
     let {
       dateOfBirth, healthCenterId, motherName, motherPhone,
       motherNationalId, fatherName, fatherPhone,delivery_place, fatherNationalId, babyCount,dateofDischarge,dateofvisit,
@@ -107,33 +111,40 @@ const createBornWithBabies = async (req, res) => {
     
 
     // Store notifications in the database
-    await Notifications.bulkCreate(notifications);
-
+ 
     // Send SMS notifications
 
-    await Promise.all(
-      allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}` +
-               `Details: \Father's name: ${fatherName}` +
-               ` \Father's Phone: ${fatherPhone}\n` +
-               `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
-               `Visit the system for more information.`))
-    );
+    if (notify && notify.notify === 'yes') {
+    // }
+    await Notifications.bulkCreate(notifications);
 
-    // Email notification content
-    let claim = {
-      message: `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}` +
-               `Details: \Father's name: ${fatherName}` +
-               ` \Father's Phone: ${fatherPhone}\n` +
-               `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
-               `Visit the system for more information.`,
-    };
+      await Promise.all(
+        allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
+                 `Details: \nMother's Phone: ${motherPhone}` +
+                 `Details: \Father's name: ${fatherName}` +
+                 ` \Father's Phone: ${fatherPhone}\n` +
+                 `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
+                 `Visit the system for more information.`))
+      );
+  
+      // Email notification content
+      let claim = {
+        message: `A new birth has been recorded in the system for ${motherName}. ` +
+                 `Details: \nMother's Phone: ${motherPhone}` +
+                 `Details: \Father's name: ${fatherName}` +
+                 ` \Father's Phone: ${fatherPhone}\n` +
+                 `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
+                 `Visit the system for more information.`,
+      };
+  
+       // Send email notifications
+       await Promise.all(
+        allUsersToNotify.map(user => new Email(user, claim).sendNotification())
+      );
+      
+    }
 
-     // Send email notifications
-     await Promise.all(
-      allUsersToNotify.map(user => new Email(user, claim).sendNotification())
-    );
+
 
     return res.status(201).json({
       message: "Born event and babies created successfully! Notifications sent.",
@@ -336,6 +347,57 @@ async function getmyHealthCenters(id) {
 }
 
 
+async function updateSettings(req, res) {
+  try {
+    let settings = await Settings.findOne();
+
+    if (!settings) {
+      // If no settings exist, create with 'yes' as default
+      settings = await Settings.create({ notify: 'yes' });
+      return res.status(200).json({ message: 'Notification enabled successfully.', settings });
+    }
+
+    // Toggle between 'yes' and 'no'
+    const newNotifyValue = settings.notify === 'yes' ? 'no' : 'yes';
+
+    await settings.update({ notify: newNotifyValue });
+
+    const successMessage = newNotifyValue === 'yes'
+      ? 'Notification enabled successfully.'
+      : 'Notification disabled successfully.';
+
+    return res.status(200).json({ message: successMessage, settings });
+
+  } catch (error) {
+    console.error('Error toggling settings:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+async function getSettings(req, res) {
+  try {
+    const settings = await Settings.findOne();
+
+    if (!settings) {
+      return res.status(404).json({ message: 'Settings not found.' });
+    }
+
+    const statusMessage = settings.notify === 'yes'
+      ? 'Notifications are currently enabled.'
+      : 'Notifications are currently disabled.';
+
+    return res.status(200).json({
+      message: statusMessage,
+      settings,
+    });
+
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+
 
 
 
@@ -401,6 +463,8 @@ const getBornById = async (req, res) => {
 
 const approveBorn = async (req, res) => {
   try {
+    const notify = await Settings.findByPk(1); 
+
     const { id } = req.params;
     let userapprove=req.user;
 
@@ -432,14 +496,15 @@ const approveBorn = async (req, res) => {
     }));
 
     // Store notifications in the database
-    await Notifications.bulkCreate(notifications);
+  
 
-    // Send SMS notifications
-    await Promise.all(
-      usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
-         in the system for ${born.motherName}. ` +
+    if (notify && notify.notify === 'yes') {
+      await Notifications.bulkCreate(notifications);
+          // Send SMS notifications
+          await Promise.all(
+            usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been approved by ${userapprove.firstname}  ${userapprove.lastname} / ${userapprove.phone} 
+              in the system for ${born.motherName}. ` +
                `Details: \nMother's Phone: ${born.motherPhone}\n` +
-               `\nDelivery Type: ${born.deliveryType}\n` +
                `Visit the system for more information.`))
     );
 
@@ -457,6 +522,10 @@ const approveBorn = async (req, res) => {
       usersToNotify.map(user => new Email(user, claim).sendNotification())
     );
 
+    }
+
+
+
     return res.status(200).json({ message: "Born record approved successfully", born });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error: error.message });
@@ -465,6 +534,8 @@ const approveBorn = async (req, res) => {
 
 const rejectBorn = async (req, res) => {
   try {
+    const notify = await Settings.findByPk(1); 
+
     const { id } = req.params;
     let userreject=req.user;
 
@@ -497,14 +568,15 @@ const rejectBorn = async (req, res) => {
     }));
 
     // Store notifications in the database
-    await Notifications.bulkCreate(notifications);
 
-    // Send SMS notifications
+    if (notify && notify.notify === 'yes') {
+      await Notifications.bulkCreate(notifications);
+
+        // Send SMS notifications
     await Promise.all(
       usersToNotify.map(user => sendSMS(user.phone, `A Born birth has been rejected by ${userreject.firstname}  ${userreject.lastname} / ${userreject.phone}  becouse of ${req.body.rejectReason}
          in the system for ${born.motherName}. ` +
                `Details: \nMother's Phone: ${born.motherPhone}\n` +
-               `\nDelivery Type: ${born.deliveryType}\n` +
                `Visit the system for more information.`))
     );
 
@@ -521,6 +593,9 @@ const rejectBorn = async (req, res) => {
      await Promise.all(
       usersToNotify.map(user => new Email(user, claim).sendNotification())
     );
+    }
+
+  
 
     return res.status(200).json({ message: "Born record rejected successfully", born });
   } catch (error) {
@@ -532,6 +607,8 @@ const rejectBorn = async (req, res) => {
 
 const updateBorn = async (req, res) => {
   try {
+    const notify = await Settings.findByPk(1); 
+
     const { id } = req.params;
     const { dateOfBirth, healthCenterId, motherName, motherPhone, 
        fatherName, fatherPhone,delivery_place,
@@ -572,8 +649,7 @@ const updateBorn = async (req, res) => {
     // Notification details
     const notificationMessage = 
       `A birth record for ${motherName} has been updated.\n` +
-      `Details:\n Delivery Type: ${deliveryType}\n` +
-      `Mother's Phone: ${motherPhone}\n` +
+       `Mother's Phone: ${motherPhone}\n` +
       `Check the system for more details.`;
 
     // Create system notifications
@@ -584,15 +660,21 @@ const updateBorn = async (req, res) => {
       status: "unread"
     }));
 
-    await Notifications.bulkCreate(notifications);
 
-    // Send SMS notifications
-    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+
+    if (notify && notify.notify === 'yes') {
+      await Notifications.bulkCreate(notifications);
+          // Send SMS notifications
+      await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
 
     // Send email notifications
-    let emailContent = { message: notificationMessage };
+      let emailContent = { message: notificationMessage };
 
-    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+     await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+
+
+    }
+
 
     return res.status(200).json({ message: "Born record updated successfully! Notifications sent." });
 
@@ -605,6 +687,8 @@ const updateBorn = async (req, res) => {
 // Function to delete a born record
 const deleteBorn = async (req, res) => {
   try {
+    const notify = await Settings.findByPk(1); 
+
     const { id } = req.params;
     const bornRecord = await Borns.findByPk(id);
 
@@ -648,15 +732,22 @@ const deleteBorn = async (req, res) => {
       status: "unread"
     }));
 
-    await Notifications.bulkCreate(notifications);
 
-    // Send SMS notifications
-    await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+    if (notify && notify.notify === 'yes') {
 
-    // Send email notifications
-    let emailContent = { message: notificationMessage };
+        await Notifications.bulkCreate(notifications);
 
-    await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+        // Send SMS notifications
+        await Promise.all(allUsersToNotify.map(user => sendSMS(user.phone, notificationMessage)));
+
+        // Send email notifications
+        let emailContent = { message: notificationMessage };
+
+        await Promise.all(allUsersToNotify.map(user => new Email(user, emailContent).sendNotification()));
+      
+
+    }
+  
     await Borns.destroy({ where: { id } });
    
     return res.status(200).json({ message: "Born record deleted successfully! Notifications sent." });
@@ -676,5 +767,7 @@ module.exports = {
   deleteBorn,
   generateReport,
   approveBorn,
-  rejectBorn
+  rejectBorn,
+  updateSettings,
+  getSettings
 };
