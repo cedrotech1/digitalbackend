@@ -27,6 +27,7 @@ const options = {
     { name: "Babies", description: "Endpoints for managing baby records" },
     { name: "Appointments", description: "Endpoints for Appointments  records" },
     { name: "Appointment Feedback", description: "Appointment Feedback" },
+    { name: "businesses", description: "businesses" },
     
     
 
@@ -548,6 +549,32 @@ const options = {
         },
       },
     },
+
+    "/api/v1/businesses/all": {
+      get: {
+        tags: ["businesses"],
+        summary: "Get all businesses",
+        description: "Get all businesses",
+        operationId: "getAllbusinesses",
+        responses: {
+          200: {
+            description: "businesses fetched successfully",
+          },
+         
+          401: {
+            description: "Unauthorized",
+          },
+          404: {
+            description: "not found",
+          },
+          500: {
+            description: "Something went wrong",
+          },
+        },
+      },
+    },
+
+
     "/api/v1/borns/notification/setting": {
       get: {
         tags: ["Users"],
@@ -579,7 +606,7 @@ const options = {
         tags: ["Users"],
         summary: "Update a notification",
         description: "Update a notification",
-        operationId: "notify",
+        operationId: "getnotify",
 
         responses: {
           200: {

@@ -10,9 +10,11 @@ import Born from './bornsRoutes.js';
 import babies from './babiesRoutes.js';
 import Appoitment from './appointmentRoutes.js';
 import AppointmentFeedbacks from './appointmentFeedbackRoutes.js';
+import Businesses from './businesses.js';
 
 const router = express.Router();
 
+router.use('/businesses', Businesses);
 router.use('/docs', docrouter);
 router.use('/users', userRouter);
 router.use('/auth', authRouter);
