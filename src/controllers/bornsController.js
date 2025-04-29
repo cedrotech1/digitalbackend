@@ -7,35 +7,44 @@ const { Borns, Babies,Cells,Settings,Villages , Users, Notifications,HealthCente
 
 const createBornWithBabies = async (req, res) => {
   let userID = req.user.id;
-  try {
-    const notify = await Settings.findByPk(1); 
 
- 
-    
+  // Helper function for birth type label
+  const getBirthType = (count) => {
+    switch (count) {
+      case 1: return 'Single Birth';
+      case 2: return 'Twins';
+      case 3: return 'Triplets';
+      case 4: return 'Quadruplets';
+      default: return `${count} Babies`;
+    }
+  };
+
+  try {
+    const notify = await Settings.findByPk(1);
     let {
       dateOfBirth, healthCenterId, motherName, motherPhone,
-      motherNationalId, fatherName, fatherPhone,delivery_place, fatherNationalId, babyCount,dateofDischarge,dateofvisit,
-      deliveryType, leave, status, sector_id, cell_id, village_id,comment, babies
+      motherNationalId, fatherName, fatherPhone, delivery_place, fatherNationalId,
+      babyCount, dateofDischarge, dateofvisit,
+      deliveryType, leave, status, sector_id, cell_id, village_id,
+      comment, babies
     } = req.body;
-    console.log("delivery place: "+delivery_place);
- 
+
+    console.log("delivery place: " + delivery_place);
+
     const healthCenter = await HealthCenters.findByPk(healthCenterId);
     if (!healthCenter) {
       return res.status(404).json({ message: "Health center not found." });
     }
 
-
-
     // Validate babyCount
-    if (!Array.isArray(babies) || babies.length === 0 ) {
+    if (!Array.isArray(babies) || babies.length === 0) {
       return res.status(400).json({ message: "Babies information is required" });
     }
 
-    req.body.babyCount=babies.length;
-    status='pending'
-    // let delivery_place=req.body.delivery_place;
+    req.body.babyCount = babies.length;
+    status = 'pending';
 
-    // Validate Babies Data
+    // Optional: validate each baby
     for (let baby of babies) {
       if (!baby.name || !baby.gender || !baby.birthWeight || !baby.dischargebirthWeight) {
         // return res.status(400).json({ message: "Each baby must have a name, gender, birth weight, and discharge birth weight." });
@@ -53,33 +62,31 @@ const createBornWithBabies = async (req, res) => {
         }
       }
     }
-    // console.log(newBorn);
 
-    console.log(req.body)
-    // Create Born entry
+    console.log(req.body);
+
     const newBorn = await Borns.create({
       dateOfBirth, healthCenterId, motherName, motherPhone,
       motherNationalId, fatherName, fatherPhone, fatherNationalId, babyCount,
-      deliveryType, leave, status, sector_id, cell_id, village_id,comment, userID,delivery_place,dateofDischarge,dateofvisit
+      deliveryType, leave, status, sector_id, cell_id, village_id,
+      comment, userID, delivery_place, dateofDischarge, dateofvisit
     });
 
-    // Assuming you have Sector, Cell, and Village models imported
-  const sector = await Sectors.findByPk(sector_id);
-  const cell = await Cells.findByPk(cell_id);
-  const village = await Villages.findByPk(village_id);
+    // Get location names
+    const sector = await Sectors.findByPk(sector_id);
+    const cell = await Cells.findByPk(cell_id);
+    const village = await Villages.findByPk(village_id);
 
-  const sectorName = sector ? sector.name : "Unknown sector";
-  const cellName = cell ? cell.name : "Unknown cell";
-  const villageName = village ? village.name : "Unknown village";
+    const sectorName = sector ? sector.name : "Unknown sector";
+    const cellName = cell ? cell.name : "Unknown cell";
+    const villageName = village ? village.name : "Unknown village";
 
-
-
-    // Create Babies associated with Born
+    // Create babies
     const createdBabies = await Promise.all(
       babies.map(baby => Babies.create({ ...baby, bornId: newBorn.id }))
     );
 
-    // Find users who should be notified
+    // Notify users
     const usersToNotify = await Users.findAll({
       where: {
         role: {
@@ -97,54 +104,34 @@ const createBornWithBabies = async (req, res) => {
 
     const allUsersToNotify = [...usersToNotify, ...headOfCommunityWorkers];
 
+    const birthType = getBirthType(babies.length);
+
+    const messageBody = `A new ${birthType.toLowerCase()} baby has been recorded in the system for ${motherName}.\n` +
+      `Details:\nMother's Phone: ${motherPhone}\nFather's Name: ${fatherName}\nFather's Phone: ${fatherPhone}\n` +
+      `Location: Sector - ${sectorName}, Cell - ${cellName}, Village - ${villageName}\n` +
+      `Visit the system for more information.`;
+
     const notifications = allUsersToNotify.map(user => ({
       userID: user.id,
-      title: `New Birth Recorded for ${motherName}`,
-      message: `A new birth has been recorded in the system for ${motherName}. ` +
-               `Details: \nMother's Phone: ${motherPhone}` +
-               `Details: \Father's name: ${fatherName}` +
-               ` \Father's Phone: ${fatherPhone}\n` +
-               `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
-               `Visit the system for more information.`,
+      title: `New ${birthType} Recorded for ${motherName}`,
+      message: messageBody,
       status: "unread"
     }));
-    
-
-    // Store notifications in the database
- 
-    // Send SMS notifications
 
     if (notify && notify.notify === 'yes') {
-    // }
-    await Notifications.bulkCreate(notifications);
+      await Notifications.bulkCreate(notifications);
 
+      // SMS
       await Promise.all(
-        allUsersToNotify.map(user => sendSMS(user.phone, `A new birth has been recorded in the system for ${motherName}. ` +
-                 `Details: \nMother's Phone: ${motherPhone}` +
-                 `Details: \Father's name: ${fatherName}` +
-                 ` \Father's Phone: ${fatherPhone}\n` +
-                 `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
-                 `Visit the system for more information.`))
+        allUsersToNotify.map(user => sendSMS(user.phone, messageBody))
       );
-  
-      // Email notification content
-      let claim = {
-        message: `A new birth has been recorded in the system for ${motherName}. ` +
-                 `Details: \nMother's Phone: ${motherPhone}` +
-                 `Details: \Father's name: ${fatherName}` +
-                 ` \Father's Phone: ${fatherPhone}\n` +
-                 `\nLocation Sector: ${sectorName}, Cell: ${cellName}, Village: ${villageName}` +
-                 `Visit the system for more information.`,
-      };
-  
-       // Send email notifications
-       await Promise.all(
+
+      // Email
+      const claim = { message: messageBody };
+      await Promise.all(
         allUsersToNotify.map(user => new Email(user, claim).sendNotification())
       );
-      
     }
-
-
 
     return res.status(201).json({
       message: "Born event and babies created successfully! Notifications sent.",
@@ -157,6 +144,7 @@ const createBornWithBabies = async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 
 
