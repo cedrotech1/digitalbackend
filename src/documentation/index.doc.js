@@ -28,10 +28,9 @@ const options = {
     { name: "Appointments", description: "Endpoints for Appointments  records" },
     { name: "Appointment Feedback", description: "Appointment Feedback" },
     { name: "businesses", description: "businesses" },
+    { name: "settings", description: "settings" },
     
     
-
-
   ],
   paths: {
     "/api/v1/auth/login": {
@@ -48,7 +47,7 @@ const options = {
                 $ref: "#/components/schemas/User",
               },
               example: {
-                email: "doctor@gmail.com",
+                email: "florenceinjesus@gmail.com",
                 password: "1234",
               },
             },
@@ -575,9 +574,9 @@ const options = {
     },
 
 
-    "/api/v1/borns/notification/setting": {
+    "/api/v1/borns/notification/switch": {
       get: {
-        tags: ["Users"],
+        tags: ["settings"],
         summary: "Update a notification",
         description: "Update a notification",
         operationId: "notify",
@@ -603,7 +602,7 @@ const options = {
     },
     "/api/v1/borns/notification/get": {
       get: {
-        tags: ["Users"],
+        tags: ["settings"],
         summary: "Update a notification",
         description: "Update a notification",
         operationId: "getnotify",
