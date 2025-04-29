@@ -21,8 +21,8 @@ module.exports = (sequelize, DataTypes) => {
       bornId: DataTypes.INTEGER, // FK to Borns
       name: DataTypes.STRING,
       gender: DataTypes.STRING, // Male, Female
-      birthWeight: DataTypes.FLOAT, // In kg
-      dischargebirthWeight: DataTypes.FLOAT, // In kg
+      birthWeight: DataTypes.INTEGER, // In kg
+      dischargebirthWeight: DataTypes.INTEGER, // In kg
       medications:DataTypes.JSON, // JSON array for medications
     },
     {

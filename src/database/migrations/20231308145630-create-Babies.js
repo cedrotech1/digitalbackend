@@ -23,10 +23,10 @@ module.exports = {
         allowNull: false,
       },
       birthWeight: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
       },
       dischargebirthWeight: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
       },
       medications: {
         type: Sequelize.JSON,
