@@ -26,7 +26,7 @@ router.get("/:id", protect,getBornById);
 
 // Update a Born record
 router.put("/:id", protect,updateBorn);
-router.get("/notification/setting", protect,updateSettings);
+router.get("/notification/switch", protect,updateSettings);
 router.get("/notification/get", protect,getSettings);
 router.put("/approve/:id", protect,approveBorn);
 router.put("/reject/:id", protect,rejectBorn);
