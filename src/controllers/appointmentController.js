@@ -21,37 +21,53 @@ export const createAppointment = async (req, res) => {
 // Get all appointments
 export const getAllAppointments = async (req, res) => {
     try {
-        const appointments = await Appointments.findAll({
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized: User not found" });
+      }
+  
+      // Default: no restriction
+      let bornWhereCondition = {};
+  
+      // Restrict access for 'head_of_community_workers_at_helth_center'
+      if (req.user.role === "head_of_community_workers_at_helth_center") {
+        if (!req.user.healthCenterId) {
+          return res.status(400).json({ message: "Missing healthCenterId for user" });
+        }
+  
+        // Only fetch appointments related to borns in user's health center
+        bornWhereCondition = { healthCenterId: req.user.healthCenterId };
+      }
+  
+      const appointments = await Appointments.findAll({
+        include: [
+          {
+            model: Borns,
+            as: "birthRecord",
+            where: bornWhereCondition, // apply filtering condition
             include: [
-                { model: Borns, as: "birthRecord",
-                    include: [
-                       
-                        
-                        { model: Babies, as: "babies" },
-                       
-                      ],
-                 },
-
-                {
-                    model: AppointmentFeedbacks,
-                    as: "appointmentFeedback",
-                    attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
-                    include: [
-                        {
-                            model: Babies,
-                            as: "baby",
-                        },
-                    ],
-                },
+              { model: Babies, as: "babies" },
             ],
-
-        });
-
-        return res.status(200).json({ message: "Appointments fetched successfully!", appointments });
+          },
+          {
+            model: AppointmentFeedbacks,
+            as: "appointmentFeedback",
+            attributes: ["id", "weight", "feedback", "nextAppointmentDate", "status"],
+            include: [
+              {
+                model: Babies,
+                as: "baby",
+              },
+            ],
+          },
+        ],
+      });
+  
+      return res.status(200).json({ message: "Appointments fetched successfully!", appointments });
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error", error: error.message });
+      return res.status(500).json({ message: "Internal server error", error: error.message });
     }
-};
+  };
+  
 
 // Get a single appointment by ID
 export const getAppointmentById = async (req, res) => {
